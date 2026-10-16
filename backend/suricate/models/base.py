@@ -1,9 +1,9 @@
 """Convenções de todas as tabelas: id UUID, criado_em e atualizado_em."""
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, MetaData, Uuid, func
+from sqlalchemy import DateTime, ForeignKey, MetaData, Uuid, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 # Nomes previsíveis para índices e restrições, para as migrações ficarem estáveis
@@ -26,3 +26,18 @@ class ComDatas:
     atualizado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class DoUsuario:
+    """Dado que pertence a um usuário (RF02): some junto quando a conta é excluída."""
+
+    usuario_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuario.id", ondelete="CASCADE"), index=True)
+
+
+def agora() -> datetime:
+    return datetime.now(UTC)
+
+
+def em_utc(momento: datetime) -> datetime:
+    """O SQLite dos testes devolve datas sem fuso; o Postgres devolve com fuso. Aqui ficam iguais."""
+    return momento if momento.tzinfo else momento.replace(tzinfo=UTC)

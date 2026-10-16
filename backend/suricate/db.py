@@ -7,7 +7,7 @@ usa o pool do Neon (PgBouncer) e o SQLAlchemy roda com NullPool.
 from collections.abc import Iterator
 from functools import lru_cache
 
-from sqlalchemy import Engine, create_engine, text
+from sqlalchemy import Engine, create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
 
@@ -24,7 +24,11 @@ def normalizar_url(url: str) -> str:
 def get_engine(url: str) -> Engine:
     url = normalizar_url(url)
     connect_args = {"connect_timeout": 5} if url.startswith("postgresql") else {}
-    return create_engine(url, poolclass=NullPool, connect_args=connect_args)
+    engine = create_engine(url, poolclass=NullPool, connect_args=connect_args)
+    if url.startswith("sqlite"):
+        # o SQLite só respeita ON DELETE CASCADE com as chaves estrangeiras ligadas
+        event.listen(engine, "connect", lambda con, _: con.execute("pragma foreign_keys=on"))
+    return engine
 
 
 def verificar_banco(url: str) -> None:
