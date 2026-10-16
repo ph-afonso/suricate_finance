@@ -11,7 +11,7 @@ Data: 16/10/2026 · Versão testada: 0.1.0 · Ramo: `develop` (`75ea0e0`) + os t
 | API e banco | pytest | pipeline (Postgres 16) e máquina local (SQLite) | 12 | ✅ 12 passaram |
 | Front | Vitest + Vue Test Utils | pipeline e máquina local | 14 | ✅ 14 passaram |
 | Build PWA | `npm run verificar:pwa` | pipeline, depois do build | 1 verificação | ✅ ok |
-| Ponta a ponta | Playwright, 360 px e 1440 px | pipeline (cada deploy da Vercel) e máquina local | 5 × 2 telas | ✅ 8 passaram na Vercel; o teste novo do ambiente roda a partir deste PR |
+| Ponta a ponta | Playwright, 360 px e 1440 px | pipeline (cada deploy da Vercel) e máquina local | 5 × 2 telas | ✅ 10 passaram no preview deste PR |
 | Ambientes | Actions *Migrações* e *Pré-produção* | GitHub Actions + Neon | 4 execuções | ✅ todas passaram |
 
 Todos os 17 casos previstos têm teste automático. CT09 (tema escuro) e CT12 (banco de cada ambiente) também têm um passo no [roteiro manual](#5-roteiro-de-validação-manual), porque o teste automático confere o efeito indireto: a classe do tema e o ambiente informado pela API.
@@ -32,7 +32,7 @@ Todos os 17 casos previstos têm teste automático. CT09 (tema escuro) e CT12 (b
 | CT09 | Tema escuro | `app.test.js` · CT09 (troca a classe que troca os tokens) + roteiro manual | ✅ |
 | CT10 | Build PWA gera manifesto e service worker | **novo:** `frontend/scripts/verificar-pwa.mjs` (manifesto com nome, cores e ícones; `sw.js` sem cache de `/api`) | ✅ |
 | CT11 | Preview da Vercel, 360 px e 1440 px | `e2e/tests/fundacao.spec.js` (página inicial, navegação, status, 404) | ✅ 8/8 no deploy `develop` |
-| CT12 | Preview de `feature/*` e `develop` usa o banco `dev` | **novo:** `fundacao.spec.js` · "o deploy usa o ambiente do seu ramo" + roteiro manual | ⏳ roda na pipeline deste PR |
+| CT12 | Preview de `feature/*` e `develop` usa o banco `dev` | **novo:** `fundacao.spec.js` · "o deploy usa o ambiente do seu ramo" + roteiro manual | ✅ preview de `feature/m1-testes` mostrou Desenvolvimento, banco ok |
 | CT13 | `staging` usa o banco `staging`, copiado de `main` | Action *Pré-produção* (recria o ramo a partir de `main` e migra) + o mesmo teste novo do CT12, no primeiro deploy de `staging` | ✅ Action · ⏳ deploy na primeira release |
 | CT14 | Status mostra os três ambientes; o que está fora fica vermelho | `test_status.py` (2 testes) + **novo:** `frontend/tests/status.test.js` (3 testes: vermelho, resumo verde, deploys e pipeline) | ✅ |
 | CT15 | Status não expõe dados de usuários | `test_status.py::test_ct15_nao_expoe_dados_de_usuarios` | ✅ |
@@ -60,6 +60,7 @@ O evento de deploy da Vercel traz só o commit, não o ramo. A pipeline pergunta
 | 16/10 17:29 | *Pré-produção*: recria `staging` a partir de `main` com a `NEON_API_KEY` e migra | ✅ |
 | 16/10 18:14 | *Migrações* em `production` (rodada pelo Phelipe) | ✅ |
 | 16/10 18:22 | e2e no deploy do `develop` (`suricatefinance-qetswtzrf…vercel.app`) | ✅ 8 passaram |
+| 16/10 18:36 | e2e no preview deste PR (`feature/m1-testes`), com o teste novo do ambiente | ✅ 10 passaram |
 | 16/10 18:22 | Página de status no preview do `develop` | ✅ Desenvolvimento no ar, banco ok, 238 ms; últimos deploys e pipeline aparecem |
 
 ## 4. Problemas encontrados e corrigidos
