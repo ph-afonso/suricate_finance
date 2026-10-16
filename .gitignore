@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Node / Quasar
+node_modules/
+dist/
+.quasar/
+
+# Ambiente e segredos
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# Sistema
+.DS_Store
+Thumbs.db
