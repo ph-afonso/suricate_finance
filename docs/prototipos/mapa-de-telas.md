@@ -50,6 +50,8 @@ O app tem 5 destinos principais. No celular eles ficam numa barra inferior; no d
 
 Ficam fora do M0 (são Fase 2 e Fase 3): metas, alertas, importação, relatórios, calendário, membro da família e assinatura. Na Fase 2, a documentação e os protótipos serão complementados com essas telas (decisão da revisão do PR #95).
 
+**Decisão da revisão do PR #98:** parcelas e financiamentos ficam na etapa Contas fixas. O usuário informa quantas parcelas eram e quantas já pagou; o app calcula quantas faltam e cria os lançamentos numerados a partir da próxima (ex.: 48 parcelas, 12 pagas → 13/48 a 48/48).
+
 **Decisão da revisão do PR #97:** o onboarding deixa de ser uma conversa em chat e vira um cadastro guiado em telas, onde o usuário já cadastra contas, cartões e contas fixas.
 
 **Decisões da revisão do PR #95:** cores e fontes aprovadas; barra inferior com 5 destinos aprovada, com Família e Planejamento dentro de "Mais" no celular; metas fora do M0.

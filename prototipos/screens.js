@@ -87,6 +87,12 @@ app.component('s-t03', {
     },
     fixa(nome) { this.o.fixas.push({ desc: nome, dia: 5, valor: null, naoAtrasar: false, dividir: this.o.divide }); },
     meta(m) { const i = this.o.metas.indexOf(m); i >= 0 ? this.o.metas.splice(i, 1) : this.o.metas.push(m); },
+    faixa(p) {
+      const t = Number(p.total) || 0, pg = Math.min(t, Number(p.pagas) || 0), faltam = t - pg;
+      if (!t) return '';
+      if (!faltam) return `Todas as ${t} parcelas já foram pagas`;
+      return `Lançamentos de ${pg + 1}/${t} a ${t}/${t} · faltam ${faltam}`;
+    },
   },
   template: `<div :style="{ height: desk ? '900px' : '760px', display: 'grid', gridTemplateColumns: desk ? '250px minmax(0,1fr) 340px' : 'minmax(0,1fr)' }">
     <aside v-if="desk" class="q-pa-lg" style="border-right:1px solid var(--app-line);background:var(--app-surface);overflow-y:auto">
@@ -217,17 +223,19 @@ app.component('s-t03', {
             <div class="lbl">Financiamentos, empréstimos e compras parceladas que ainda não acabaram. Eles também saem de cada período.</div>
             <div v-for="(p, i) in o.parcelas" :key="'p' + i" class="onb-item">
               <q-icon name="sym_r_event_repeat" color="primary" />
-              <div class="grow"><div>{{ p.desc }}</div><div class="lbl">faltam {{ p.restam }} parcelas</div></div>
+              <div class="grow"><div>{{ p.desc }}</div><div class="lbl tnum">{{ faixa(p) }}</div></div>
               <b class="tnum">{{ brl(Number(p.valor) || 0) }}</b>
               <q-btn flat round dense icon="sym_r_delete" aria-label="Remover" @click="o.parcelas.splice(i, 1)" />
             </div>
             <div class="onb-add">
               <div class="row q-col-gutter-sm">
                 <div :class="desk ? 'col-6' : 'col-12'"><q-input id="t03-p-desc" outlined dense v-model="o.novaParcela.desc" label="Descrição" placeholder="Ex.: Empréstimo" /></div>
-                <div :class="desk ? 'col-3' : 'col-7'"><q-input id="t03-p-val" outlined dense v-model.number="o.novaParcela.valor" type="number" label="Parcela" prefix="R$" /></div>
-                <div :class="desk ? 'col-3' : 'col-5'"><q-input id="t03-p-rest" outlined dense v-model.number="o.novaParcela.restam" type="number" label="Faltam" /></div>
+                <div :class="desk ? 'col-6' : 'col-12'"><q-input id="t03-p-val" outlined dense v-model.number="o.novaParcela.valor" type="number" label="Valor da parcela" prefix="R$" /></div>
+                <div class="col-6"><q-input id="t03-p-total" outlined dense v-model.number="o.novaParcela.total" type="number" min="1" label="Quantas eram" /></div>
+                <div class="col-6"><q-input id="t03-p-pagas" outlined dense v-model.number="o.novaParcela.pagas" type="number" min="0" label="Quantas já paguei" /></div>
               </div>
-              <q-btn flat color="primary" icon="sym_r_add" no-caps label="Adicionar parcela" style="justify-self:start" @click="add('parcelas', 'novaParcela', { desc: '', valor: null, restam: null })" />
+              <div v-if="o.novaParcela.total" class="lbl tnum">{{ faixa(o.novaParcela) }}</div>
+              <q-btn flat color="primary" icon="sym_r_add" no-caps label="Adicionar parcela" style="justify-self:start" @click="add('parcelas', 'novaParcela', { desc: '', valor: null, total: null, pagas: null })" />
             </div>
           </template>
 

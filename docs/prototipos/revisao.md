@@ -106,9 +106,11 @@ Conferidos entre as telas, com os dados fictícios do usuário 1:
 
 ## 7. Pontos em aberto para decisão
 
-- [ ] **A. Salário que entra em outra data (RN04, RF06).** Proposta: no dia previsto, o Suri pergunta no painel "Seu salário já entrou?", com os botões "Entrou hoje" e "Ainda não". O período só vira quando o usuário confirma ou quando o lançamento do salário é marcado como recebido. Desenhar isso no M3 (Períodos)?
-- [ ] **B. Onboarding com parcelas e financiamentos.** A nova seção foi acrescentada na etapa Contas fixas. Aprovar aqui ou preferir uma etapa só para dívidas?
-- [ ] **C. Telas que ficaram sem desenho completo:** o formulário de categoria (T14), as exceções do planejamento (T13) e os detalhes dos períodos Setembro e Novembro (T04). Proposta: desenhar na etapa 1 (documentação técnica) de cada módulo correspondente, em vez de voltar ao M0.
+**Decisões registradas no PR #98:** A aprovada, para o M3 (issue #21). B aprovada, com o total e as já pagas; implementada neste PR. C aprovada: cada tela pendente é desenhada na documentação técnica do módulo que a implementa (#21, #29, #55).
+
+- [x] **A. Salário que entra em outra data (RN04, RF06).** Proposta: no dia previsto, o Suri pergunta no painel "Seu salário já entrou?", com os botões "Entrou hoje" e "Ainda não". O período só vira quando o usuário confirma ou quando o lançamento do salário é marcado como recebido. Desenhar isso no M3 (Períodos)?
+- [x] **B. Onboarding com parcelas e financiamentos.** A nova seção foi acrescentada na etapa Contas fixas. Aprovar aqui ou preferir uma etapa só para dívidas?
+- [x] **C. Telas que ficaram sem desenho completo:** o formulário de categoria (T14), as exceções do planejamento (T13) e os detalhes dos períodos Setembro e Novembro (T04). Proposta: desenhar na etapa 1 (documentação técnica) de cada módulo correspondente, em vez de voltar ao M0.
 
 ## 8. Critérios de aceite do M0
 

@@ -394,10 +394,12 @@ function novoOnb() {
       { desc: 'Condomínio', dia: 14, valor: 521.08, naoAtrasar: true, dividir: true },
     ],
     parcelas: [
-      { desc: 'Financiamento do carro', valor: 1246.63, restam: 37, dividir: true },
-      { desc: 'Parcelas do cartão Nubank', valor: 640, restam: 6, dividir: false },
+      { desc: 'Financiamento do carro', valor: 1246.63, total: 48, pagas: 11, dividir: true },
+      { desc: 'Mercadão Pneus (Nubank)', valor: 214.19, total: 5, pagas: 2, dividir: false },
+      { desc: 'Vivara (Nubank)', valor: 180, total: 5, pagas: 3, dividir: false },
+      { desc: 'CVC Viagens (Nubank)', valor: 245.81, total: 10, pagas: 5, dividir: false },
     ],
-    novaParcela: { desc: '', valor: null, restam: null },
+    novaParcela: { desc: '', valor: null, total: null, pagas: null },
     divide: true, parceiro: 'Agatha', pct: 50, contaFam: 'Conta Familiar', cartaoFam: '',
     metas: ['Reserva de segurança', 'Quitar o carro'], limCartao: 1000, limDebito: 300,
   };
