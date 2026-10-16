@@ -111,6 +111,7 @@ Hotfix segue o mesmo caminho, a partir de `main`.
 | `APP_VERSION` | Versão exibida na rota de saúde | Vercel (do commit) |
 | `NEON_API_KEY`, `NEON_PROJECT_ID` | Recriar o ramo `staging` na Action | GitHub (secrets) |
 | `VERCEL_AUTOMATION_BYPASS_SECRET` | Playwright acessar previews protegidos | GitHub (secrets) |
+| `VERCEL_API_TOKEN`, `GITHUB_STATUS_TOKEN` | Página de status lê os últimos deploys e a última pipeline (só leitura) | Vercel |
 
 Nenhum segredo vai para o código. O `.gitignore` já ignora os arquivos `.env`.
 
@@ -195,6 +196,8 @@ Depois que a pipeline estiver estável, os três jobs viram verificações obrig
 | CT11 | E2E | Preview da Vercel, 360 px e 1440 px | Página carrega e mostra `banco: ok` |
 | CT12 | Ambientes | Preview de `feature/*` | Usa o banco `dev` |
 | CT13 | Ambientes | Deploy de `staging` | Usa o banco `staging`, com dados copiados de `main` |
+| CT14 | Status | Página de status | Mostra os três ambientes, com versão e banco; um ambiente fora aparece em vermelho |
+| CT15 | Status | Página de status | Não expõe nenhum dado de usuário |
 
 ## 12. Tarefas da etapa 2
 
@@ -209,6 +212,7 @@ Viram sub-issues de "[M1] 2. Desenvolvimento" quando este documento for aprovado
 7. Projeto na Vercel, `vercel.json`, variáveis por ambiente e proteção da pré-produção.
 8. Action de pré-produção (recriar o ramo `staging` do Neon e migrar).
 9. Pipeline de testes (#94).
+10. Página de status dos ambientes e das entregas (seção 15).
 
 ## 13. O que preciso do Phelipe
 
@@ -224,6 +228,23 @@ Viram sub-issues de "[M1] 2. Desenvolvimento" quando este documento for aprovado
 | Banco do Neon suspende sem uso | Primeira requisição lenta | Aceito no uso atual; avaliar depois |
 | Limite de ramos do Neon no plano grátis | Poucos ramos | Só três ramos fixos; previews de `feature/*` usam `dev` |
 | Dados reais na pré-produção | Exposição de dados pessoais | Endereço protegido; mascaramento quando houver outros usuários |
+
+## 15. Painel de gestão (pedido na revisão do PR #100)
+
+Pedido: um dashboard completo para acompanhar o negócio (usuários de teste, assinantes, status de cada ambiente), de preferência hospedado na Vercel.
+
+**Proposta: o painel é uma área do próprio Suricate, em `/admin`**, servida pela mesma Vercel e lendo o mesmo banco. O Grafana não roda na Vercel, porque é um servidor que precisa ficar ligado o tempo todo; ele fica como complemento opcional pelo Grafana Cloud (plano grátis, hospedado pela própria Grafana), para métricas técnicas.
+
+| Parte | O que mostra | Quando |
+| --- | --- | --- |
+| Status dos ambientes | Produção, pré-produção e desenvolvimento: no ar ou fora, versão publicada, banco ok, tempo de resposta da rota de saúde | **M1**, numa página de status (sem dados pessoais) |
+| Entregas | Último deploy de cada ambiente (API da Vercel) e resultado da última pipeline (API do GitHub) | **M1**, na mesma página |
+| Usuários | Cadastrados, em teste grátis, ativos nos últimos 7 e 30 dias, que concluíram o cadastro guiado | Depois do login (M2), só para o perfil administrador |
+| Negócio | Testes que viraram assinatura, assinantes, cancelamentos, receita | Junto com a assinatura (Fase 3, RN31) |
+| Uso do app | Lançamentos por dia, cartões e contas cadastrados, módulos mais usados | Depois do M4 |
+| Técnico (opcional) | Erros, latência e logs das funções | Grafana Cloud ou a observabilidade da própria Vercel, quando houver usuários |
+
+**Proteção:** a página de status do M1 é pública e não mostra dados de usuários. As partes de usuários, negócio e uso exigem login com perfil administrador (o chefe da conta Suricate, não o "chefe da família").
 
 ## Fontes
 
