@@ -10,7 +10,7 @@ onMounted(marcarComoVista)
 
 <template>
   <q-page padding>
-    <div class="column q-gutter-md" style="max-width: 720px; margin: 0 auto">
+    <div class="column no-wrap q-gutter-md" style="max-width: 720px; margin: 0 auto">
       <h1 style="font-size: 24px">Novidades</h1>
 
       <div v-if="!versoes.length" class="sf-dica">

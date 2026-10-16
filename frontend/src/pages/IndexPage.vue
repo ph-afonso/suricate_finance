@@ -19,7 +19,7 @@ const versaoFront = process.env.APP_VERSION
 
 <template>
   <q-page padding>
-    <div class="column q-gutter-md" style="max-width: 640px; margin: 0 auto">
+    <div class="column no-wrap q-gutter-md" style="max-width: 640px; margin: 0 auto">
       <div class="sf-dica">
         <SuriMascote :expressao="tudoOk ? 'feliz' : erro || dados ? 'preocupado' : 'vigia'" :tamanho="56" />
         <div>
