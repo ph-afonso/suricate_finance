@@ -9,8 +9,8 @@ Legenda: 🧑 Phelipe · 🤖 Claude
 | # | Quem | Passo |
 | --- | --- | --- |
 | 1 | 🧑 | Entrar em [console.neon.tech](https://console.neon.tech) com **Continue with GitHub** |
-| 2 | 🤖 | Criar o projeto `suricate-finance`, Postgres 16, na região mais próxima disponível (São Paulo, se houver) |
-| 3 | 🤖 | Criar os ramos `dev` e `staging` a partir de `main` |
+| 2 | 🤖 | Criar o projeto `suricate-finance` pela integração Neon da Vercel (Storage › Create Database), região São Paulo (`gru1`), ligado ao projeto só em Production com o prefixo `DATABASE` (gera `DATABASE_URL` e `DATABASE_URL_UNPOOLED`). ID do projeto: `soft-paper-17185054` |
+| 3 | 🤖 | Criar os ramos `dev` e `staging` a partir de `main`, com exclusão automática **Never** |
 | 4 | 🧑 | Criar uma chave da API do Neon (Account settings › API keys), para a Action da pré-produção |
 
 Cada ramo tem duas strings de conexão: **com pool** (endereço com `-pooler`, usada pelo app) e **direta** (sem `-pooler`, usada nas migrações).
@@ -31,7 +31,7 @@ Cada ramo tem duas strings de conexão: **com pool** (endereço com `-pooler`, u
 | 9 | 🧑 | Entrar em [vercel.com](https://vercel.com) com **Continue with GitHub** e autorizar o acesso ao repositório `suricate_finance` |
 | 10 | 🤖 | Importar o projeto `suricate-finance`, sem framework (o `vercel.json` já define o build) |
 | 11 | 🤖 | Criar o ramo `staging` no GitHub e as variáveis sem segredo: `APP_ENV` (`production` em Production, `development` em Preview, `staging` no Preview do ramo `staging`) e `STATUS_AMBIENTES` |
-| 12 | 🧑 | Criar a variável `DATABASE_URL` com a string **com pool**: Production → ramo `main`; Preview → ramo `dev`; Preview do ramo `staging` → ramo `staging` |
+| 12 | 🧑 | Criar a variável `DATABASE_URL` com a string **com pool**: Preview → ramo `dev`; Preview do ramo `staging` → ramo `staging` (Production já vem da integração) |
 | 13 | 🤖 | Conferir a proteção dos previews (Deployment Protection), que inclui a pré-produção |
 | 14 | 🧑 | Gerar o segredo de *Protection Bypass for Automation* e salvá-lo no GitHub como segredo do repositório `VERCEL_AUTOMATION_BYPASS_SECRET` (para os testes de ponta a ponta) |
 | 15 | 🤖 | Fazer o primeiro deploy e conferir `/api/health` nos três ambientes |
