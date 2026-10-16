@@ -112,6 +112,7 @@ Hotfix segue o mesmo caminho, a partir de `main`.
 | `NEON_API_KEY`, `NEON_PROJECT_ID` | Recriar o ramo `staging` na Action | GitHub (secrets) |
 | `VERCEL_AUTOMATION_BYPASS_SECRET` | Playwright acessar previews protegidos | GitHub (secrets) |
 | `VERCEL_API_TOKEN`, `GITHUB_STATUS_TOKEN` | Página de status lê os últimos deploys e a última pipeline (só leitura) | Vercel |
+| `GITHUB_SUGESTOES_TOKEN` | Aba Sugestões cria e lê issues (M2) | Vercel |
 
 Nenhum segredo vai para o código. O `.gitignore` já ignora os arquivos `.env`.
 
@@ -198,6 +199,8 @@ Depois que a pipeline estiver estável, os três jobs viram verificações obrig
 | CT13 | Ambientes | Deploy de `staging` | Usa o banco `staging`, com dados copiados de `main` |
 | CT14 | Status | Página de status | Mostra os três ambientes, com versão e banco; um ambiente fora aparece em vermelho |
 | CT15 | Status | Página de status | Não expõe nenhum dado de usuário |
+| CT16 | Novidades | Página Novidades | Mostra as versões do `CHANGELOG.md`, da mais nova para a mais antiga |
+| CT17 | Novidades | Versão nova desde a última visita | Selo no item do menu, que some depois de abrir a página |
 
 ## 12. Tarefas da etapa 2
 
@@ -213,6 +216,7 @@ Viram sub-issues de "[M1] 2. Desenvolvimento" quando este documento for aprovado
 8. Action de pré-produção (recriar o ramo `staging` do Neon e migrar).
 9. Pipeline de testes (#94).
 10. Página de status dos ambientes e das entregas (seção 15).
+11. Página Novidades lendo o `CHANGELOG.md`, com a entrada da versão 0.1.0 (seção 16).
 
 ## 13. O que preciso do Phelipe
 
@@ -245,6 +249,44 @@ Pedido: um dashboard completo para acompanhar o negócio (usuários de teste, as
 | Técnico (opcional) | Erros, latência e logs das funções | Grafana Cloud ou a observabilidade da própria Vercel, quando houver usuários |
 
 **Proteção:** a página de status do M1 é pública e não mostra dados de usuários. As partes de usuários, negócio e uso exigem login com perfil administrador (o chefe da conta Suricate, não o "chefe da família").
+
+## 16. Novidades e sugestões dos usuários (pedido na revisão do PR #100)
+
+Pedido: uma página de changelog dentro do app e uma aba onde o cliente abre solicitações de melhoria que chegam direto no GitHub, com label própria e num milestone separado de sugestões dos usuários.
+
+### Página "Novidades" (changelog)
+
+- **Onde:** item "Novidades" no menu (em "Mais", no celular), com um selo quando há versão nova desde a última visita.
+- **Conteúdo:** uma entrada por versão publicada em produção, com a data e o que mudou, escrito para o usuário ("Agora dá para dividir o cartão do casal") e não para o desenvolvedor.
+- **Fonte:** o arquivo `CHANGELOG.md` do repositório, convertido em JSON no build do front. Cada release do Git Flow acrescenta a entrada nele e cria a Release correspondente no GitHub, com o mesmo texto.
+- **Quando:** M1, com a primeira entrada (versão 0.1.0, a fundação).
+
+### Aba "Sugestões"
+
+```mermaid
+flowchart LR
+  C[Cliente: aba Sugestões] -->|título, descrição, tipo, tela| A[API: POST /api/sugestoes]
+  A -->|grava cópia| B[(tabela sugestao)]
+  A -->|cria issue com token só de issues| G[GitHub: label sugestao-usuario, milestone Sugestões dos usuários]
+  G -->|Claude faz a triagem| T{Aceita?}
+  T -->|sim| M[Vai para um módulo ou para o backlog]
+  T -->|não| F[Fechada com resposta]
+  G -.->|status sincronizado| C
+```
+
+- **Formulário:** tipo (melhoria, problema ou ideia), título, descrição e a tela onde o cliente estava (preenchida automaticamente).
+- **No GitHub:** a issue nasce com as labels `sugestao-usuario` e `triagem` e no milestone **Sugestões dos usuários**. Sai da triagem quando o Claude classifica: aceita (move para o módulo ou o backlog de uma fase) ou não aceita (fecha com a resposta).
+- **Para o cliente:** a aba lista as sugestões dele com o status (recebida, em análise, planejada, entregue ou não será feita), lido do GitHub. Quando uma sugestão é entregue, ela aparece também na página Novidades.
+- **Privacidade (LGPD):** o repositório é público, então a issue **não leva nome, e-mail nem dados financeiros** do cliente, só um código anônimo. O texto passa por um aviso antes do envio ("não inclua dados pessoais"). Se preferir esconder até o texto, o caminho é tornar o repositório privado.
+- **Abuso:** só usuários logados; no máximo 5 sugestões por dia por usuário.
+- **Token:** um token do GitHub com permissão apenas de criar e ler issues neste repositório, guardado como variável na Vercel (`GITHUB_SUGESTOES_TOKEN`).
+- **Quando:** M2, porque depende do login.
+
+### Já preparado no GitHub
+
+- Label `sugestao-usuario` (e `triagem`).
+- Milestone **Sugestões dos usuários**.
+- A Action de etapas ignora esse milestone, porque ele não segue as 4 etapas.
 
 ## Fontes
 
