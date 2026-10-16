@@ -26,6 +26,8 @@ export default defineConfig(() => ({
     iconSet: 'material-symbols-rounded',
     config: {
       dark: 'auto',
+      // avisos no topo: embaixo eles cobriam a barra de navegação e o botão Continuar no celular
+      notify: { position: 'top' },
       brand: {
         primary: '#A85A2A',
         secondary: '#2F5D50',

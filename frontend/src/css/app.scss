@@ -96,6 +96,45 @@ h3,
   border: 1px solid var(--sf-dica-borda);
 }
 
+.sf-dica p {
+  margin: 0;
+}
+
+// Cadastro guiado e formulários de lista (M2)
+.sf-rotulo {
+  font-size: 13px;
+  color: var(--sf-muted);
+}
+
+.sf-pares {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sf-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--sf-line);
+  border-radius: 12px;
+  background: var(--sf-surface);
+}
+
+.sf-novo {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed var(--sf-line);
+  border-radius: 12px;
+  justify-items: start;
+
+  > .row {
+    width: 100%;
+  }
+}
+
 .q-btn {
   text-transform: none;
   letter-spacing: 0;

@@ -1,9 +1,12 @@
 // CT11, CT12, CT13, CT14 e CT16 de ponta a ponta, no celular (360 px) e no desktop (1440 px).
+// Desde o M2 a página inicial exige login: os testes dela entram com uma conta descartável.
 import { test, expect } from '@playwright/test'
+import { entrarComContaNova } from './apoio.js'
 
 test('a página inicial mostra a API e o banco no ar', async ({ page }) => {
+  await entrarComContaNova(page)
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Suricate Finance' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Oi, Teste!' })).toBeVisible()
   await expect(page.getByTestId('banco')).toHaveText('banco: ok')
   await expect(page.getByTestId('versao')).toHaveText(/\d+\.\d+\.\d+/)
 })
@@ -13,13 +16,14 @@ test('a página inicial mostra a API e o banco no ar', async ({ page }) => {
 test('o deploy usa o ambiente do seu ramo', async ({ page }) => {
   const esperado = process.env.E2E_AMBIENTE
   test.skip(!esperado, 'sem E2E_AMBIENTE (execução local)')
+  await entrarComContaNova(page)
   await page.goto('/')
   await expect(page.getByTestId('ambiente')).toHaveText(esperado)
   await expect(page.getByTestId('banco')).toHaveText('banco: ok')
 })
 
 test('a navegação segue o layout aprovado', async ({ page, isMobile }) => {
-  await page.goto('/')
+  await page.goto('/status')
   if (isMobile) {
     const nav = page.getByRole('navigation', { name: 'Navegação principal' })
     await expect(nav).toBeVisible()

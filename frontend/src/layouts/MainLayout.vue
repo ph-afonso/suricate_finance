@@ -6,10 +6,12 @@ import { useRoute } from 'vue-router'
 import SuriMascote from 'components/SuriMascote.vue'
 import PeriodoSelector from 'components/PeriodoSelector.vue'
 import { useNovidades } from 'src/composables/useNovidades'
+import { useSessao } from 'src/composables/useSessao'
 
 const $q = useQuasar()
 const route = useRoute()
 const { temNovidade } = useNovidades()
+const { usuario } = useSessao()
 const desktop = computed(() => $q.screen.gt.sm)
 const mais = ref(false)
 
@@ -24,6 +26,7 @@ const secundarios = [
   { to: '/contas', label: 'Contas', icon: 'sym_r_account_balance' },
   { to: '/categorias', label: 'Categorias', icon: 'sym_r_category' },
   { to: '/novidades', label: 'Novidades', icon: 'sym_r_campaign' },
+  { to: '/sugestoes', label: 'Sugestões', icon: 'sym_r_lightbulb' },
   { to: '/status', label: 'Status do sistema', icon: 'sym_r_monitor_heart' },
   { to: '/configuracoes', label: 'Configurações', icon: 'sym_r_settings' },
 ]
@@ -51,8 +54,10 @@ function novoLancamento() {
         <q-space />
         <PeriodoSelector />
         <q-space />
+        <q-btn v-if="!usuario" color="primary" outline no-caps label="Entrar" to="/entrar" />
         <template v-if="desktop">
           <q-btn
+            v-if="usuario"
             color="primary"
             unelevated
             icon="sym_r_add"
