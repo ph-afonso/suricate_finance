@@ -1,0 +1,7 @@
+# Dependências da API em produção (lidas pela Vercel). Desenvolvimento: backend/requirements-dev.txt
+fastapi==0.119.1
+pydantic==2.14.1
+pydantic-settings==2.16.0
+SQLAlchemy==2.0.54
+psycopg[binary]==3.2.13
+httpx==0.28.1

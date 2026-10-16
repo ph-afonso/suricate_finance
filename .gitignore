@@ -21,3 +21,10 @@ dist/
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Gerados no build e nos testes
+frontend/src/assets/changelog.json
+*.db
+e2e/test-results/
+e2e/playwright-report/
+.ruff_cache/
