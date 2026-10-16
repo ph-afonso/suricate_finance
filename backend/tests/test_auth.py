@@ -122,7 +122,7 @@ def test_ct23_post_sem_cabecalho_csrf(api):
 GOOGLE = {
     "google_client_id": "id-teste",
     "google_client_secret": "segredo",
-    "app_url": "http://localhost:9001",
+    "app_url": "http://testserver",
 }
 
 
@@ -177,7 +177,15 @@ def test_ct24_google_recusa_retorno_invalido(api, monkeypatch):
 
 def test_ct24_google_sem_configuracao(api):
     r = api().get("/api/auth/google/inicio", follow_redirects=False)
-    assert "/entrar?erro=" in r.headers["location"]
+    assert r.headers["location"].startswith("/entrar?erro=")
+
+
+def test_ct24_google_fora_do_endereco_do_app_nao_sai_do_preview(api):
+    # preview de feature/*: o retorno do Google iria para o APP_URL, que é outro ambiente (D4)
+    c = api(**{**GOOGLE, "app_url": "https://suricatefinance-git-develop-x.vercel.app"})
+    r = c.get("/api/auth/google/inicio", follow_redirects=False)
+    assert r.headers["location"].startswith("/entrar?erro=")
+    assert "accounts.google.com" not in r.headers["location"]
 
 
 # ---------- Esqueci a senha (CT25) ----------

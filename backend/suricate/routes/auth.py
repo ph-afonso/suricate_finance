@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 from typing import Annotated
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
@@ -157,16 +157,25 @@ def redefinir(dados: NovaSenha, request: Request, response: Response, db: Banco,
 
 
 def _volta_para_login(settings, mensagem: str) -> RedirectResponse:
-    destino = f"{settings.app_url.rstrip('/')}/entrar?erro={quote(mensagem)}"
-    resposta = RedirectResponse(destino, status.HTTP_303_SEE_OTHER)
+    # endereço relativo: a pessoa volta para o login do mesmo endereço em que está
+    resposta = RedirectResponse(f"/entrar?erro={quote(mensagem)}", status.HTTP_303_SEE_OTHER)
     resposta.delete_cookie(COOKIE_GOOGLE, path="/api/auth/google")
     return resposta
 
 
+def _no_endereco_do_app(request: Request, settings) -> bool:
+    """O Google só devolve a pessoa para os endereços cadastrados, que são os APP_URL (decisão D4).
+    Num preview de feature/* (outro endereço), o retorno cairia em outro ambiente."""
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host") or ""
+    return host == urlparse(settings.app_url).netloc
+
+
 @router.get("/google/inicio")
-def google_inicio(settings: Config) -> RedirectResponse:
-    if not settings.google_configurado:
-        return _volta_para_login(settings, "O login com Google não está disponível neste endereço.")
+def google_inicio(request: Request, settings: Config) -> RedirectResponse:
+    if not settings.google_configurado or not _no_endereco_do_app(request, settings):
+        return _volta_para_login(
+            settings, "O login com Google não está disponível neste endereço. Entre com e-mail e senha."
+        )
     state, verificador, desafio = google.novo_pedido()
     resposta = RedirectResponse(google.url_autorizacao(settings, state, desafio), status.HTTP_303_SEE_OTHER)
     resposta.set_cookie(
