@@ -15,6 +15,7 @@
     "dev": "quasar dev -m pwa",
     "prebuild": "npm run changelog",
     "build": "quasar build -m pwa",
+    "verificar:pwa": "node scripts/verificar-pwa.mjs",
     "lint": "eslint src tests scripts",
     "format": "prettier --write \"src/**/*.{js,vue,scss}\" \"tests/**/*.js\" \"scripts/*.mjs\"",
     "format:check": "prettier --check \"src/**/*.{js,vue,scss}\" \"tests/**/*.js\"",

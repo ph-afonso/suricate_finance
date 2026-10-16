@@ -73,6 +73,8 @@ jobs:
         run: npm test
       - name: Build PWA
         run: npm run build
+      - name: Manifesto e service worker do PWA (CT10)
+        run: npm run verificar:pwa
 
   e2e:
     # Só deploys da Vercel: as Actions de migração também criam deployments (ambientes do GitHub)
@@ -88,6 +90,21 @@ jobs:
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - uses: actions/checkout@v4
+      - name: Ambiente esperado para o ramo do deploy (CT12, CT13)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.deployment.sha }}
+          ALVO: ${{ github.event.deployment.environment }}
+        run: |
+          if [ "$ALVO" = "Production" ]; then ambiente="Produção"
+          else
+            ramos=$(gh api "repos/${{ github.repository }}/commits/$SHA/branches-where-head" --jq '.[].name' || true)
+            if echo "$ramos" | grep -qx staging; then ambiente="Pré-produção"
+            elif [ -n "$ramos" ]; then ambiente="Desenvolvimento"
+            fi
+          fi
+          echo "Ramos: ${ramos:-?} -> ambiente esperado: ${ambiente:-não verificado}"
+          echo "E2E_AMBIENTE=${ambiente}" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v4
         with:
           node-version: 22

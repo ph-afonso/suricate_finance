@@ -1,4 +1,4 @@
-// CT11, CT14 e CT16 de ponta a ponta, no celular (360 px) e no desktop (1440 px).
+// CT11, CT12, CT13, CT14 e CT16 de ponta a ponta, no celular (360 px) e no desktop (1440 px).
 import { test, expect } from '@playwright/test'
 
 test('a página inicial mostra a API e o banco no ar', async ({ page }) => {
@@ -6,6 +6,16 @@ test('a página inicial mostra a API e o banco no ar', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Suricate Finance' })).toBeVisible()
   await expect(page.getByTestId('banco')).toHaveText('banco: ok')
   await expect(page.getByTestId('versao')).toHaveText(/\d+\.\d+\.\d+/)
+})
+
+// CT12 e CT13: cada deploy usa as variáveis (e o banco) do seu ambiente. A pipeline descobre o ramo
+// do deploy e informa o ambiente esperado em E2E_AMBIENTE; na máquina local o teste é pulado.
+test('o deploy usa o ambiente do seu ramo', async ({ page }) => {
+  const esperado = process.env.E2E_AMBIENTE
+  test.skip(!esperado, 'sem E2E_AMBIENTE (execução local)')
+  await page.goto('/')
+  await expect(page.getByTestId('ambiente')).toHaveText(esperado)
+  await expect(page.getByTestId('banco')).toHaveText('banco: ok')
 })
 
 test('a navegação segue o layout aprovado', async ({ page, isMobile }) => {
