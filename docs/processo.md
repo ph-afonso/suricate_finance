@@ -31,6 +31,24 @@ Ordem dos módulos do MVP: M0 Protótipos → M1 Fundação → M2 Acesso e onbo
    - **Precisa de ajustes:** comenta no PR. O Claude corrige no mesmo PR.
 5. Ao aprovar a etapa 4, a Action fecha o módulo e o milestone e libera a etapa 1 do próximo módulo.
 
+## Testes
+
+Todo código vem com testes automatizados escritos no repositório. O GitHub Actions roda todos eles a cada PR e mostra ✅ ou ❌ no próprio PR.
+
+| Camada | Ferramenta | O que cobre |
+| --- | --- | --- |
+| Regras de negócio | pytest | Motor de períodos, fatura, "quanto posso gastar", metas |
+| API | pytest + cliente de teste do FastAPI | Endpoints, login e isolamento de dados entre usuários |
+| Componentes do front | Vitest + Vue Test Utils | Telas e componentes do Quasar |
+| Ponta a ponta | Playwright, em tela de celular e de desktop | Fluxos completos na prévia da Vercel; os prints viram a documentação de uso |
+
+Além disso, na etapa 3 de cada módulo e antes de cada release, o Claude faz uma validação exploratória com o Claude in Chrome e grava o roteiro em GIF. Essa validação complementa os testes automáticos, mas não os substitui.
+
+- **Etapa 1:** a documentação técnica lista os casos de teste.
+- **Etapa 2:** o código já vem com os testes de regras de negócio e de API.
+- **Etapa 3:** completa os testes de componentes e de ponta a ponta e entrega o relatório.
+- Os testes usam dados fictícios. Dados reais só aparecem em pré-produção.
+
 ## Labels
 
 | Label | Significado |
