@@ -5,6 +5,8 @@ Protótipo navegável das 16 telas do MVP, feito com os componentes do Quasar 2.
 - **Ver online:** [Suricate Finance Protótipos](https://claude.ai/artifact/F4UQid2qyArpUT2cy19cPu) (página privada do Phelipe).
 - **Ver no computador:** na pasta `prototipos/`, rode `python -m http.server 8765` e abra `http://127.0.0.1:8765/`.
 
+Roteiro completo, tela por tela e com prints: [docs/prototipos/roteiro.md](../docs/prototipos/roteiro.md).
+
 ## Como usar
 
 - **Telas (barra lateral):** T01 a T16. As telas de formulário (T06, T09, T11) abrem por cima da tela de origem.
