@@ -48,7 +48,9 @@ O app tem 5 destinos principais. No celular eles ficam numa barra inferior; no d
 | T15 | Detalhe do lançamento | RF09, RF11 | Dados do lançamento, mover para outro período, marcar como pago, editar, excluir | Tela cheia | Painel lateral |
 | T16 | Configurações | RF04 | Perfil, regras do período (dia do salário, fim de semana, atraso), refazer etapas do onboarding, tema claro/escuro | Lista | Página com abas |
 
-Ficam fora do M0 (são Fase 2 e Fase 3): metas, alertas, importação, relatórios, calendário, membro da família e assinatura.
+Ficam fora do M0 (são Fase 2 e Fase 3): metas, alertas, importação, relatórios, calendário, membro da família e assinatura. Na Fase 2, a documentação e os protótipos serão complementados com essas telas (decisão da revisão do PR #95).
+
+**Decisões da revisão do PR #95:** cores e fontes aprovadas; barra inferior com 5 destinos aprovada, com Família e Planejamento dentro de "Mais" no celular; metas fora do M0.
 
 ## 4. Fluxos principais
 
