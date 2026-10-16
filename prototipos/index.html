@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Suricate Finance Protótipos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quasar@2.16.9/dist/quasar.prod.css">
+<style>
+/* Layout: barra de controle no topo, lista de telas e fluxos à esquerda, palco com o celular e o desktop lado a lado. */
+:root {
+  --shell-bg: #F3EEE7;
+  --shell-panel: #FFFFFF;
+  --shell-line: #E2D8CC;
+  --shell-fg: #1F1B16;
+  --shell-muted: #6B6158;
+  --shell-accent: #A85A2A;
+  --shell-accent-soft: #F4E4D7;
+  --device-edge: #2A241E;
+  --app-bg: #FBF7F2;
+  --app-surface: #FFFFFF;
+  --app-line: #EDE4D9;
+  --app-muted: #6B6158;
+  --font-display: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --shell-bg: #0F0D0B; --shell-panel: #1A1714; --shell-line: #332C25; --shell-fg: #F2ECE4;
+    --shell-muted: #B3A89C; --shell-accent: #E08A55; --shell-accent-soft: #3A2618; --device-edge: #000000;
+    --app-bg: #16130F; --app-surface: #221D18; --app-line: #3A322A; --app-muted: #B3A89C; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --shell-bg: #0F0D0B; --shell-panel: #1A1714; --shell-line: #332C25; --shell-fg: #F2ECE4;
+  --shell-muted: #B3A89C; --shell-accent: #E08A55; --shell-accent-soft: #3A2618; --device-edge: #000000;
+  --app-bg: #16130F; --app-surface: #221D18; --app-line: #3A322A; --app-muted: #B3A89C; color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--shell-bg) !important; color: var(--shell-fg); font-family: var(--font-body); font-size: 14px; }
+body.body--dark { background: var(--shell-bg) !important; }
+#app { min-height: 100%; }
+h1, h2, h3, .font-display { font-family: var(--font-display); text-wrap: balance; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ---------- Shell ---------- */
+.shell { display: grid; grid-template-rows: auto 1fr; min-height: 100%; }
+.shell-top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--shell-panel);
+  border-bottom: 1px solid var(--shell-line);
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--shell-panel); }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.brand b { font-family: var(--font-display); font-size: 18px; font-weight: 800; }
+.brand span { color: var(--shell-muted); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+.seg { display: inline-flex; border: 1px solid var(--shell-line); border-radius: 8px; overflow: hidden; }
+.seg button { font: inherit; font-size: 13px; padding: 6px 12px; background: transparent; color: var(--shell-fg); border: 0; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--shell-line); }
+.seg button[aria-pressed="true"] { background: var(--shell-accent); color: #fff; }
+.seg button:focus-visible, .nav-link:focus-visible { outline: 2px solid var(--shell-accent); outline-offset: 2px; }
+.ctl { display: flex; align-items: center; gap: 8px; color: var(--shell-muted); font-size: 12px; }
+
+.shell-body { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 0; }
+.shell-side {
+  border-right: 1px solid var(--shell-line); background: var(--shell-panel);
+  padding-block: 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px;
+  overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+}
+.side-title { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--shell-muted); margin: 0 0 6px; }
+.nav-link { display: flex; gap: 8px; width: 100%; text-align: left; font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 0; background: transparent; color: var(--shell-fg); cursor: pointer; }
+.nav-link .code { color: var(--shell-muted); font-variant-numeric: tabular-nums; min-width: 28px; }
+.nav-link:hover { background: var(--shell-accent-soft); }
+.nav-link[aria-current="true"] { background: var(--shell-accent-soft); font-weight: 600; }
+.flow { border: 1px solid var(--shell-line); border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+.flow > b { display: block; font-size: 13px; margin-bottom: 4px; }
+.flow ol { margin: 0; padding-left: 20px; display: grid; gap: 2px; }
+.flow li button { font: inherit; font-size: 12px; text-align: left; border: 0; background: none; color: var(--shell-fg); cursor: pointer; padding: 2px 0; }
+.flow li button:hover { color: var(--shell-accent); text-decoration: underline; }
+.note { font-size: 12px; color: var(--shell-muted); line-height: 1.5; }
+
+.stage { min-width: 0; overflow-x: auto; padding-block: 20px; padding-left: 20px; padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.devices { display: flex; gap: 24px; align-items: flex-start; }
+.dev-col { display: flex; flex-direction: column; gap: 8px; flex: none; }
+.dev-label { font-size: 12px; color: var(--shell-muted); letter-spacing: .04em; text-transform: uppercase; }
+.dev-scale { position: relative; overflow: hidden; border-radius: 14px; }
+.device {
+  position: relative; overflow: hidden; background: var(--app-bg); border: 6px solid var(--device-edge);
+  border-radius: 14px; transform-origin: 0 0; font-family: var(--font-body);
+}
+.device.mobile { width: 372px; height: 772px; border-radius: 28px; }
+.device.desktop { width: 1452px; height: 912px; }
+.device .q-layout, .device .q-layout-container { background: var(--app-bg); }
+
+@media (max-width: 900px) {
+  .shell-body { grid-template-columns: minmax(0, 1fr); }
+  .shell-side { border-right: 0; border-bottom: 1px solid var(--shell-line); padding-right: max(16px, env(safe-area-inset-right, 0px)); max-height: 40vh; }
+  .stage { padding-left: max(16px, env(safe-area-inset-left, 0px)); }
+}
+
+/* ---------- App (dentro dos aparelhos) ---------- */
+.device .q-header { background: var(--app-surface); color: inherit; border-bottom: 1px solid var(--app-line); }
+.device .q-footer { background: var(--app-surface); color: inherit; border-top: 1px solid var(--app-line); }
+.device .q-drawer { background: var(--app-surface); }
+.device .q-card { background: var(--app-surface); border: 1px solid var(--app-line); box-shadow: none; border-radius: 12px; }
+.device .q-tab { text-transform: none; }
+.device .q-btn { text-transform: none; font-weight: 600; letter-spacing: 0; }
+.device .q-btn:not(.q-btn--round) { border-radius: 8px; }
+.device .text-muted { color: var(--app-muted); }
+.device .q-page { color: inherit; }
+.period-sel { display: flex; align-items: center; gap: 2px; justify-content: center; min-width: 0; }
+.period-sel .name { font-family: var(--font-display); font-weight: 800; font-size: 16px; line-height: 1.1; }
+.period-sel .dates { font-size: 12px; color: var(--app-muted); }
+.big-num { font-family: var(--font-body); font-weight: 700; font-size: 30px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.lbl { font-size: 12px; color: var(--app-muted); }
+.row-money { display: flex; flex-wrap: wrap; justify-content: space-between; column-gap: 12px; row-gap: 2px; font-variant-numeric: tabular-nums; }
+.row-money > :last-child { white-space: nowrap; text-align: right; margin-left: auto; }
+.row-money > :first-child { min-width: 0; }
+.foot-nav .q-btn:not(.q-btn--round) { padding: 0 2px; min-width: 0; }
+.foot-nav .q-btn__content { font-size: 10.5px; flex-wrap: nowrap; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.stack { display: grid; gap: 12px; }
+.sec-title { font-family: var(--font-display); font-weight: 800; font-size: 20px; margin: 0; }
+.day-head { font-size: 12px; color: var(--app-muted); text-transform: uppercase; letter-spacing: .05em; padding: 12px 4px 4px; }
+.amount-in { color: var(--q-positive); }
+.amount-out { color: inherit; }
+.tbl { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.tbl th { text-align: left; font-size: 12px; color: var(--app-muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--app-line); }
+.tbl td { padding: 10px 12px; border-bottom: 1px solid var(--app-line); }
+.tbl tr.click { cursor: pointer; }
+.tbl tr.click:hover td { background: rgba(168, 90, 42, .06); }
+.tbl .r { text-align: right; }
+.suri-tip { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 12px; background: rgba(168, 90, 42, .09); border: 1px solid rgba(168, 90, 42, .25); }
+.body--dark .suri-tip { background: rgba(224, 138, 85, .12); border-color: rgba(224, 138, 85, .3); }
+.suri-tip p { margin: 0; line-height: 1.45; }
+.sheet-backdrop { position: absolute; inset: 0; background: rgba(20, 15, 10, .45); z-index: 3000; display: flex; }
+.sheet-backdrop.mobile { align-items: flex-end; }
+.sheet-backdrop.desktop { align-items: center; justify-content: center; }
+.sheet { background: var(--app-surface); color: inherit; width: 100%; max-height: 88%; overflow-y: auto; overflow-x: hidden; border-radius: 18px 18px 0 0; padding: 16px; }
+.sheet-backdrop.desktop .sheet { width: 620px; max-height: 84%; border-radius: 14px; padding: 24px; }
+.sheet h3 { margin: 0 0 12px; font-size: 20px; font-weight: 800; }
+.toast { position: absolute; left: 50%; bottom: 88px; transform: translateX(-50%); background: #2F5D50; color: #fff; padding: 10px 16px; border-radius: 10px; z-index: 3100; font-size: 13px; max-width: 86%; }
+.device.desktop .toast { bottom: 28px; }
+.swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+.swatch.on { border-color: var(--q-primary); box-shadow: 0 0 0 2px var(--app-surface) inset; }
+.chat { display: flex; flex-direction: column; gap: 2px; }
+.chat .q-message-text { border-radius: 14px; }
+.achv { align-self: center; margin: 8px 0; }
+.onb-answer { border-top: 1px solid var(--app-line); background: var(--app-surface); padding: 12px; display: grid; gap: 8px; overflow-x: hidden; }
+.device .q-page { overflow-x: hidden; }
+.auth-wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+.auth-card { width: 100%; max-width: 380px; display: grid; gap: 14px; }
+.badge-late { font-size: 10px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="shell">
+    <header class="shell-top">
+      <div class="brand">
+        <span v-html="suriSvg('vigia', 30)"></span>
+        <div><b>Suricate Finance</b><br><span>Protótipos do MVP · M0</span></div>
+      </div>
+      <div class="ctl" role="group" aria-label="Visualização">
+        Ver
+        <div class="seg">
+          <button type="button" :aria-pressed="S.view === 'side'" @click="S.view = 'side'">Lado a lado</button>
+          <button type="button" :aria-pressed="S.view === 'mobile'" @click="S.view = 'mobile'">Celular</button>
+          <button type="button" :aria-pressed="S.view === 'desktop'" @click="S.view = 'desktop'">Desktop</button>
+        </div>
+      </div>
+      <div class="ctl" role="group" aria-label="Tema">
+        Tema
+        <div class="seg">
+          <button type="button" :aria-pressed="!S.dark" @click="setDark(false)">Claro</button>
+          <button type="button" :aria-pressed="S.dark" @click="setDark(true)">Escuro</button>
+        </div>
+      </div>
+    </header>
+    <div class="shell-body">
+      <aside class="shell-side">
+        <section>
+          <p class="side-title">Telas</p>
+          <button v-for="t in SCREENS" :key="t.id" type="button" class="nav-link" :aria-current="current === t.id" @click="jump(t.id)">
+            <span class="code">{{ t.id }}</span><span>{{ t.nome }}</span>
+          </button>
+        </section>
+        <section>
+          <p class="side-title">Fluxos</p>
+          <div v-for="f in FLOWS" :key="f.id" class="flow">
+            <b>{{ f.id }} · {{ f.nome }}</b>
+            <ol><li v-for="(p, i) in f.passos" :key="i"><button type="button" @click="runStep(p)">{{ p.texto }}</button></li></ol>
+          </div>
+        </section>
+        <p class="note">Protótipo: nada é salvo. Os dados são fictícios, com a estrutura do usuário 1 descrita em <code>docs/prototipos/mapa-de-telas.md</code>. Celular e desktop mostram o mesmo estado: o que você faz em um aparece no outro.</p>
+      </aside>
+      <main class="stage" ref="stage">
+        <div class="devices">
+          <div v-if="S.view !== 'desktop'" class="dev-col">
+            <div class="dev-label">Celular · 360 px</div>
+            <device mode="mobile"></device>
+          </div>
+          <div v-if="S.view !== 'mobile'" class="dev-col">
+            <div class="dev-label">Desktop · 1440 px</div>
+            <div class="dev-scale" :style="{ width: (1452 * deskScale) + 'px', height: (912 * deskScale) + 'px' }">
+              <div :style="{ transform: 'scale(' + deskScale + ')', transformOrigin: '0 0', width: '1452px' }">
+                <device mode="desktop"></device>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.4.38/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quasar@2.16.9/dist/quasar.umd.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quasar@2.16.9/dist/lang/pt-BR.umd.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quasar@2.16.9/dist/icon-set/material-symbols-rounded.umd.prod.js"></script>
+<script>
+/* Estado, dados e o aparelho. As telas ficam em screens.js, que monta o app no fim. */
+const { createApp, reactive, computed, ref, onMounted, onBeforeUnmount } = Vue;
+
+/* ---------- Formatação ---------- */
+const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const brl = v => BRL.format(v).replace(/ /g, ' ');
+const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const pad = n => String(n).padStart(2, '0');
+const dmy = (d, m, y) => `${pad(d)}/${pad(m)}/${y}`;
+
+/* ---------- O Suri (desenho provisório) ---------- */
+function suriSvg(expr = 'vigia', size = 64) {
+  const fur = '#C98E5A', belly = '#EED3B0', dark = '#3B2A1E';
+  const mouth = {
+    vigia: `<path d="M55 66 q5 3 10 0" stroke="${dark}" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    feliz: `<path d="M53 64 q7 8 14 0" stroke="${dark}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    preocupado: `<path d="M54 68 q6 -5 12 0" stroke="${dark}" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M44 40 l9 4 M76 40 l-9 4" stroke="${dark}" stroke-width="2" stroke-linecap="round"/>`,
+    comemorando: `<path d="M52 63 q8 10 16 0 z" fill="${dark}"/>`,
+  }[expr];
+  const arms = expr === 'comemorando'
+    ? `<path d="M36 96 L18 62 M84 96 L102 62" stroke="${fur}" stroke-width="9" stroke-linecap="round"/>`
+    : `<path d="M40 100 q14 10 22 0 M80 100 q-14 10 -22 0" stroke="${fur}" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size * 1.33}" viewBox="0 0 120 160" role="img" aria-label="Suri, o suricato">
+    <ellipse cx="60" cy="150" rx="30" ry="6" fill="${dark}" opacity=".15"/>
+    <path d="M86 140 q22 -6 18 -34" stroke="${fur}" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <ellipse cx="60" cy="112" rx="30" ry="40" fill="${fur}"/>
+    <ellipse cx="60" cy="118" rx="18" ry="30" fill="${belly}"/>
+    ${arms}
+    <ellipse cx="60" cy="52" rx="25" ry="23" fill="${fur}"/>
+    <circle cx="37" cy="40" r="6" fill="${fur}"/><circle cx="83" cy="40" r="6" fill="${fur}"/>
+    <circle cx="37" cy="40" r="3" fill="${dark}"/><circle cx="83" cy="40" r="3" fill="${dark}"/>
+    <ellipse cx="49" cy="50" rx="7.5" ry="8.5" fill="${dark}"/><ellipse cx="71" cy="50" rx="7.5" ry="8.5" fill="${dark}"/>
+    <circle cx="50" cy="49" r="3.4" fill="#fff"/><circle cx="70" cy="49" r="3.4" fill="#fff"/>
+    <ellipse cx="60" cy="60" rx="9" ry="7" fill="${belly}"/>
+    <ellipse cx="60" cy="57.5" rx="3.6" ry="2.6" fill="${dark}"/>
+    ${mouth}
+  </svg>`;
+}
+const suriUri = expr => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(suriSvg(expr, 40));
+
+/* ---------- Dados fictícios do usuário 1 ---------- */
+const PERIODOS = [
+  { nome: 'Setembro', ini: '15/09/2026', fim: '14/10/2026' },
+  { nome: 'Outubro', ini: '15/10/2026', fim: '14/11/2026', atual: true },
+  { nome: 'Novembro', ini: '15/11/2026', fim: '14/12/2026' },
+];
+const CARTOES = [
+  { id: 'nubank', nome: 'Nubank', bandeira: 'Mastercard', fecha: 17, vence: 24, limite: 19150, usado: 1709.76, gastoPeriodo: 420, limitePeriodo: 1000,
+    faturaCaixa: { venc: '24/10/2026', valor: 1081.51, status: 'A pagar' }, faturaAberta: { venc: '24/11/2026', fecha: '17/11/2026', valor: 1060, ideal: 1640 } },
+  { id: 'leroy', nome: 'Leroy Pay', bandeira: 'Visa', fecha: 11, vence: 21, limite: 9257.5, usado: 762.49, gastoPeriodo: 0, limitePeriodo: null,
+    faturaCaixa: { venc: '21/10/2026', valor: 102.49, status: 'A pagar' }, faturaAberta: { venc: '21/11/2026', fecha: '11/11/2026', valor: 82.5 } },
+  { id: 'inter', nome: 'Inter da família', bandeira: 'Mastercard', fecha: 13, vence: 20, limite: 8000, usado: 1240, gastoPeriodo: 0, limitePeriodo: null, familia: true,
+    faturaCaixa: { venc: '20/10/2026', valor: 466.58, status: 'Paga', suaParte: 233.29 }, faturaAberta: { venc: '20/11/2026', fecha: '13/11/2026', valor: 612.4 } },
+];
+const CONTAS = [
+  { nome: 'Conta Pessoal', banco: 'Nubank', tipo: 'Conta corrente', saldo: 1240, previsto: 766, cor: '#8A05BE' },
+  { nome: 'Conta Familiar', banco: 'Inter', tipo: 'Familiar', saldo: 3900, previsto: 0, cor: '#FF7A00', familia: true },
+  { nome: 'Reserva', banco: 'Nubank', tipo: 'Poupança', saldo: 600, previsto: 600, cor: '#2F5D50' },
+];
+const LANC = [
+  { id: 1, data: '15/10', desc: 'Salário', cat: 'Salário', conta: 'Conta Pessoal', valor: 7500, tipo: 'receita', pago: true },
+  { id: 2, data: '16/10', desc: 'Minha parte das contas da casa', cat: 'Transferência', conta: 'Conta Pessoal → Conta Familiar', valor: -2576.26, tipo: 'transf', pago: true },
+  { id: 3, data: '16/10', desc: 'Energia', cat: 'Casa', conta: 'Conta Pessoal', valor: -90.85, tipo: 'despesa', pago: true },
+  { id: 4, data: '18/10', desc: 'Padaria', cat: 'Lanches', conta: 'Pix', valor: -18.5, tipo: 'despesa', pago: true },
+  { id: 5, data: '19/10', desc: 'Restaurante', cat: 'Restaurante', conta: 'Nubank', valor: -86, tipo: 'cartao', pago: true },
+  { id: 6, data: '20/10', desc: 'Petshop', cat: 'Pet', conta: 'Nubank', valor: -142.98, tipo: 'cartao', pago: true },
+  { id: 7, data: '21/10', desc: 'Fatura Leroy Pay', cat: 'Fatura', conta: 'Conta Pessoal', valor: -102.49, tipo: 'despesa', pago: false, naoAtrasar: false },
+  { id: 8, data: '22/10', desc: 'Farmácia', cat: 'Saúde', conta: 'Nubank', valor: -49.99, tipo: 'cartao', pago: true },
+  { id: 9, data: '23/10', desc: 'Mercado', cat: 'Supermercado', conta: 'Débito', valor: -115.5, tipo: 'despesa', pago: true },
+  { id: 10, data: '23/10', desc: 'Lanche', cat: 'Lanches', conta: 'Nubank', valor: -41.03, tipo: 'cartao', pago: true },
+  { id: 11, data: '24/10', desc: 'Cinema', cat: 'Lazer', conta: 'Nubank', valor: -100, tipo: 'cartao', pago: true },
+  { id: 12, data: '24/10', desc: 'Fatura Nubank', cat: 'Fatura', conta: 'Conta Pessoal', valor: -1081.51, tipo: 'despesa', pago: false },
+  { id: 13, data: '05/11', desc: 'Celular', cat: 'Serviços', conta: 'Conta Pessoal', valor: -100, tipo: 'despesa', pago: false },
+  { id: 14, data: '08/11', desc: 'Aluguel Green Park', cat: 'Aluguel', conta: 'Conta Pessoal', valor: 810, tipo: 'receita', pago: false },
+];
+const FATURA_NUBANK = [
+  { data: '19/10/2026', desc: 'Restaurante', cat: 'Restaurante', parc: '', valor: 86 },
+  { data: '20/10/2026', desc: 'Petshop', cat: 'Pet', parc: '', valor: 142.98 },
+  { data: '22/10/2026', desc: 'Farmácia', cat: 'Saúde', parc: '', valor: 49.99 },
+  { data: '23/10/2026', desc: 'Lanche', cat: 'Lanches', parc: '', valor: 41.03 },
+  { data: '24/10/2026', desc: 'Cinema', cat: 'Lazer', parc: '', valor: 100 },
+  { data: '05/06/2026', desc: 'Mercadão Pneus', cat: 'Manutenção do carro', parc: '3/5', valor: 214.19 },
+  { data: '12/07/2026', desc: 'Vivara', cat: 'Presentes', parc: '4/5', valor: 180 },
+  { data: '02/03/2026', desc: 'CVC Viagens', cat: 'Viagem', parc: '6/10', valor: 245.81 },
+];
+const CASA = [
+  { desc: 'Aluguel Spazio Uno', venc: '22/10', valor: 2539.28, pago: false, naoAtrasar: true },
+  { desc: 'Internet', venc: '05/11', valor: 139.9, pago: false },
+  { desc: 'Água', venc: '05/11', valor: 145.24, pago: false },
+  { desc: 'Seguro do carro', venc: '05/11', valor: 189.18, pago: false },
+  { desc: 'Parcela Ford Ka', venc: '10/11', valor: 1246.63, pago: false },
+  { desc: 'Condomínio Spazio Uno', venc: '14/11', valor: 521.08, pago: false, naoAtrasar: true },
+  { desc: 'Taxa extra do condomínio', venc: '14/11', valor: 169.3, pago: false, naoAtrasar: true },
+  { desc: 'Condomínio Green Park', venc: '14/11', valor: 201.91, pago: false, naoAtrasar: true },
+];
+const CASA_TOTAL = CASA.reduce((s, c) => s + c.valor, 0);
+const PLANO = [
+  { cat: 'Restaurante', icon: 'sym_r_restaurant', plan: 200, gasto: 86 },
+  { cat: 'Lanches', icon: 'sym_r_bakery_dining', plan: 200, gasto: 59.53 },
+  { cat: 'Pet', icon: 'sym_r_pets', plan: 250, gasto: 142.98 },
+  { cat: 'Supermercado', icon: 'sym_r_shopping_cart', plan: 200, gasto: 115.5 },
+  { cat: 'Saúde', icon: 'sym_r_medication', plan: 100, gasto: 49.99 },
+  { cat: 'Cuidados pessoais', icon: 'sym_r_content_cut', plan: 75, gasto: 0 },
+  { cat: 'Serviços', icon: 'sym_r_build', plan: 50, gasto: 0 },
+  { cat: 'Lazer e outros', icon: 'sym_r_theaters', plan: 225, gasto: 100 },
+];
+const CATEGORIAS = [
+  { nome: 'Alimentação', icon: 'sym_r_restaurant', cor: '#C0392B', subs: ['Restaurante', 'Lanches', 'Supermercado'] },
+  { nome: 'Casa', icon: 'sym_r_home', cor: '#1E88E5', subs: ['Aluguel', 'Condomínio', 'Energia', 'Água', 'Internet'] },
+  { nome: 'Transporte', icon: 'sym_r_directions_car', cor: '#3949AB', subs: ['Combustível', 'Financiamento', 'Seguro', 'Manutenção do carro'] },
+  { nome: 'Pet', icon: 'sym_r_pets', cor: '#F57C00', subs: ['Petshop', 'Veterinário'] },
+  { nome: 'Saúde', icon: 'sym_r_medication', cor: '#558B2F', subs: ['Farmácia', 'Consultas e exames'] },
+  { nome: 'Lazer', icon: 'sym_r_theaters', cor: '#8E24AA', subs: ['Cinema', 'Viagem'] },
+  { nome: 'Cuidados pessoais', icon: 'sym_r_content_cut', cor: '#AD1457', subs: [] },
+  { nome: 'Serviços', icon: 'sym_r_build', cor: '#00897B', subs: ['Celular'] },
+  { nome: 'Outros', icon: 'sym_r_category', cor: '#6D4C41', subs: [] },
+];
+
+const SCREENS = [
+  { id: 'T01', nome: 'Boas-vindas e login', auth: true },
+  { id: 'T02', nome: 'Cadastro', auth: true },
+  { id: 'T03', nome: 'Onboarding do Suri', auth: true },
+  { id: 'T04', nome: 'Painel do período' },
+  { id: 'T05', nome: 'Lançamentos do período' },
+  { id: 'T06', nome: 'Novo lançamento', sheet: 'T06', base: 'T05' },
+  { id: 'T07', nome: 'Cartões' },
+  { id: 'T08', nome: 'Fatura do cartão' },
+  { id: 'T09', nome: 'Novo cartão', sheet: 'T09', base: 'T07' },
+  { id: 'T10', nome: 'Contas' },
+  { id: 'T11', nome: 'Nova conta', sheet: 'T11', base: 'T10' },
+  { id: 'T12', nome: 'Família' },
+  { id: 'T13', nome: 'Planejamento do período' },
+  { id: 'T14', nome: 'Categorias' },
+  { id: 'T15', nome: 'Detalhe do lançamento' },
+  { id: 'T16', nome: 'Configurações' },
+];
+
+/* ---------- Estado compartilhado pelos dois aparelhos ---------- */
+const S = reactive({
+  view: 'side', dark: false, screen: 'T04', sheet: null, more: false, toast: '', periodo: 1,
+  cardView: 'gasto', cardSel: 'nubank', famTab: 'contas', cfgTab: 'periodo', txSel: 7, filtro: 'todos',
+  casa: CASA.map(c => ({ ...c })), repasseAgatha: false,
+  novo: { tipo: 'cartao', valor: '180,00', data: '2026-10-25', desc: 'Tênis', cat: 'Outros', origem: 'nubank', parcelas: 3, pago: true, naoAtrasar: false, familia: false },
+  cartaoNovo: { limite: '5.000,00', nome: '', bandeira: 'Visa', conta: 'Conta Pessoal', fecha: 5, vence: 12, compartilhado: false },
+  contaNova: { saldo: '0,00', nome: '', banco: 'Nubank', tipo: 'Conta corrente', cor: '#A85A2A', soma: true },
+  cfg: { dia: 15, fds: 'antecipa', atrasa: 'nao' },
+  onb: null,
+});
+let toastTimer = null;
+function toast(msg) { S.toast = msg; clearTimeout(toastTimer); toastTimer = setTimeout(() => { S.toast = ''; }, 3200); }
+function go(id) { S.sheet = null; S.more = false; S.screen = id; }
+function openSheet(id) { S.more = false; S.sheet = id; }
+
+/* ---------- Onboarding (roteiro do Suri) ---------- */
+const ETAPAS = ['Boas-vindas', 'Sua renda', 'Contas bancárias', 'Cartões', 'Contas fixas', 'Família', 'Objetivos'];
+const STEPS = [
+  { etapa: 0, suri: 'Oi! Eu sou o Suri, o suricato que vai ficar de vigia nas suas finanças. Como posso te chamar?', tipo: 'texto', campo: 'nome', label: 'Seu nome' },
+  { etapa: 0, suri: n => `Prazer, ${n.nome}! O que você mais quer agora?`, tipo: 'botoes', campo: 'objetivo', opcoes: ['Sair do vermelho', 'Juntar dinheiro', 'Quitar dívida', 'Organizar as contas'], outros: true },
+  { etapa: 1, suri: 'Vamos à renda. Em que dia o salário costuma cair e quanto, em média?', tipo: 'campos', campos: [{ k: 'dia', label: 'Dia', w: 4 }, { k: 'salario', label: 'Valor médio (R$)', w: 8 }], resumo: n => `Dia ${n.dia} · R$ ${n.salario}` },
+  { etapa: 1, suri: n => `E quando o dia ${n.dia} cai no fim de semana ou feriado?`, tipo: 'botoes', campo: 'fds', opcoes: ['Antecipa', 'Adia', 'Não muda', 'Não sei'] },
+  { etapa: 1, suri: 'O salário costuma atrasar?', tipo: 'botoes', campo: 'atrasa', opcoes: ['Sim', 'Não'] },
+  { etapa: 1, se: n => n.atrasa === 'Sim', suri: 'Quantos dias, no máximo?', tipo: 'campos', campos: [{ k: 'diasAtraso', label: 'Dias', w: 4 }], resumo: n => `Até ${n.diasAtraso} dias` },
+  { etapa: 1, suri: 'Tem outras entradas fixas? Aluguel, freela, pensão...', tipo: 'lista', campo: 'rendas', colunas: ['Descrição', 'Dia', 'Valor (R$)'], vazio: 'Não tenho', conquista: 'Ponto de partida' },
+  { etapa: 2, suri: 'Em quais contas você tem dinheiro hoje, e quanto em cada uma?', tipo: 'lista', campo: 'contas', colunas: ['Conta', 'Banco', 'Saldo (R$)'], conquista: 'Toca do suricato' },
+  { etapa: 3, suri: 'Agora os cartões de crédito: em que dia cada um fecha e vence?', tipo: 'lista', campo: 'cartoes', colunas: ['Cartão', 'Fecha', 'Vence'],
+    depois: 'Fatura fechando dia 17? Anotado. Compras no Nubank entre 17/10 e 16/11 vão para a fatura de 24/11, paga com o salário de 15/11. Suricato não esquece!', conquista: 'Vigia do cartão' },
+  { etapa: 4, suri: 'Quais destas contas fixas você paga todo mês?', tipo: 'chips', campo: 'fixas', opcoes: ['Aluguel', 'Condomínio', 'Água', 'Luz', 'Internet', 'Financiamento', 'Seguro do carro', 'Celular'], multi: true },
+  { etapa: 4, suri: 'Alguma delas perde desconto se atrasar?', tipo: 'chips', campo: 'naoAtrasar', opcoes: ['Aluguel', 'Condomínio', 'Nenhuma'], multi: true, conquista: 'Nada me escapa' },
+  { etapa: 5, suri: 'Você divide contas com alguém?', tipo: 'botoes', campo: 'divide', opcoes: ['Sim', 'Não'] },
+  { etapa: 5, se: n => n.divide === 'Sim', suri: 'Com quem, em que proporção, e existe uma conta familiar com cartão do casal?', tipo: 'campos',
+    campos: [{ k: 'parceiro', label: 'Nome', w: 6 }, { k: 'pct', label: 'Sua parte (%)', w: 6 }, { k: 'contaFam', label: 'Conta familiar', w: 6 }, { k: 'cartaoFam', label: 'Cartão do casal', w: 6 }],
+    resumo: n => `${n.parceiro} · você paga ${n.pct}% · ${n.contaFam} com cartão ${n.cartaoFam}`,
+    depois: 'Combinado: o que você transferir para a conta familiar já sai do seu disponível na hora, mesmo antes de o boleto ser pago.', conquista: 'Bando unido' },
+  { etapa: 6, suri: 'O que você quer conquistar? Escolha na ordem de prioridade.', tipo: 'chips', campo: 'metas', opcoes: ['Reserva de segurança', 'Quitar o carro', 'Reserva de emergência', 'Viagem', 'Aposentadoria'], multi: true },
+  { etapa: 6, suri: 'Última! Quanto quer gastar por período no cartão e no débito/Pix?', tipo: 'campos', campos: [{ k: 'limCartao', label: 'Cartão (R$)', w: 6 }, { k: 'limDebito', label: 'Débito/Pix (R$)', w: 6 }],
+    resumo: n => `Cartão R$ ${n.limCartao} · Débito/Pix R$ ${n.limDebito}`, conquista: 'Olhando o horizonte' },
+  { etapa: 7, suri: 'Tudo pronto! Seu primeiro período é Outubro · 15/10/2026 a 14/11/2026. Você tem R$ 166 disponíveis e o próximo vencimento importante é o aluguel, em 22/10.', tipo: 'fim' },
+];
+function novoOnb() {
+  return {
+    i: 0, msgs: [], notas: [], conquistas: [], outros: false, sel: [],
+    n: { nome: 'Phelipe', dia: '15', salario: '7.500', diasAtraso: '2', parceiro: 'Agatha', pct: '50', contaFam: 'Inter', cartaoFam: 'Sim', limCartao: '1.000', limDebito: '300', outroTexto: '' },
+    listas: {
+      rendas: [['Aluguel Green Park', '8', '810']],
+      contas: [['Conta Pessoal', 'Nubank', '1.240'], ['Conta Familiar', 'Inter', '3.900']],
+      cartoes: [['Nubank', '17', '24'], ['Leroy Pay', '11', '21']],
+    },
+  };
+}
+function suriFala(o) { const st = STEPS[o.i]; o.msgs.push({ de: 'suri', txt: typeof st.suri === 'function' ? st.suri(o.n) : st.suri }); }
+function iniciarOnb() { S.onb = novoOnb(); suriFala(S.onb); }
+function responder(texto, nota) {
+  const o = S.onb, st = STEPS[o.i];
+  o.msgs.push({ de: 'eu', txt: texto });
+  if (nota) o.notas.push({ etapa: ETAPAS[st.etapa], txt: nota });
+  if (st.depois) o.msgs.push({ de: 'suri', txt: st.depois });
+  if (st.conquista) { o.msgs.push({ de: 'conquista', txt: st.conquista }); o.conquistas.push(st.conquista); }
+  o.outros = false; o.sel = [];
+  do { o.i++; } while (STEPS[o.i] && STEPS[o.i].se && !STEPS[o.i].se(o.n));
+  suriFala(o);
+}
+iniciarOnb();
+
+/* ---------- Regras do cartão (RN08–RN12) ---------- */
+function infoCartao(novo) {
+  const c = CARTOES.find(x => x.id === novo.origem);
+  if (!c || !novo.data) return null;
+  const [y, m, d] = novo.data.split('-').map(Number);
+  let fm = d >= c.fecha ? m + 1 : m, fy = y;
+  if (fm > 12) { fm -= 12; fy++; }
+  const n = Math.max(1, Number(novo.parcelas) || 1);
+  let lm = fm + n - 1, ly = fy;
+  while (lm > 12) { lm -= 12; ly++; }
+  const gastoMes = d >= 15 ? m : (m === 1 ? 12 : m - 1);
+  return {
+    fatura: dmy(c.vence, fm, fy), periodoPaga: MESES[fm - 1], periodoGasto: MESES[gastoMes - 1],
+    ultima: n > 1 ? dmy(c.vence, lm, ly) : null, n, atual: d >= 15 && d < c.fecha,
+  };
+}
+
+/* ---------- Componentes ---------- */
+const app = createApp({
+  setup() {
+    const stage = ref(null);
+    const deskScale = ref(0.6);
+    const current = computed(() => S.sheet || S.screen);
+    let ro;
+    const fit = () => {
+      const el = stage.value; if (!el) return;
+      const w = el.clientWidth - 40 - (S.view === 'side' ? 372 + 24 : 0);
+      deskScale.value = Math.max(0.3, Math.min(1, w / 1452));
+    };
+    onMounted(() => { ro = new ResizeObserver(fit); ro.observe(stage.value); fit(); });
+    onBeforeUnmount(() => ro && ro.disconnect());
+    Vue.watch(() => S.view, () => Vue.nextTick(fit));
+    function jump(id) {
+      const t = SCREENS.find(x => x.id === id);
+      if (t.sheet) { S.screen = t.base; S.sheet = t.sheet; } else go(id);
+      if (id === 'T03' && S.onb.i >= STEPS.length - 1) iniciarOnb();
+    }
+    function runStep(p) { p.acao ? p.acao() : jump(p.tela); }
+    return { S, SCREENS, FLOWS, stage, deskScale, current, jump, runStep, suriSvg, setDark };
+  },
+});
+
+function setDark(on) {
+  S.dark = on;
+  document.documentElement.setAttribute('data-theme', on ? 'dark' : 'light');
+  Quasar.Dark.set(on);
+  const pal = on
+    ? { primary: '#E08A55', secondary: '#6FB3A0', positive: '#66BB6A', negative: '#EF5350', warning: '#FFB74D', info: '#64B5F6' }
+    : { primary: '#A85A2A', secondary: '#2F5D50', positive: '#2E7D32', negative: '#C62828', warning: '#B26A00', info: '#1565C0' };
+  Object.entries(pal).forEach(([k, v]) => Quasar.setCssVar(k, v));
+}
+
+const FLOWS = [
+  { id: 'F1', nome: 'Primeiro acesso', passos: [
+    { texto: 'Tela de boas-vindas', tela: 'T01' },
+    { texto: 'Conversa com o Suri, do começo', acao: () => { iniciarOnb(); go('T03'); } },
+    { texto: 'Painel do primeiro período', tela: 'T04' },
+  ] },
+  { id: 'F2', nome: 'Compra no cartão', passos: [
+    { texto: 'Painel: botão "+"', tela: 'T04' },
+    { texto: 'Nova compra parcelada no Nubank', acao: () => { S.novo.tipo = 'cartao'; S.screen = 'T04'; openSheet('T06'); } },
+    { texto: 'Fatura onde ela cai', acao: () => { S.cardSel = 'nubank'; go('T08'); } },
+  ] },
+  { id: 'F3', nome: 'Ritual do salário', passos: [
+    { texto: 'Salário entrou: aviso do Suri', tela: 'T04' },
+    { texto: 'Transferir a parte da casa', acao: () => { S.famTab = 'repasses'; go('T12'); } },
+    { texto: 'Marcar contas como pagas', acao: () => { S.famTab = 'contas'; go('T12'); } },
+  ] },
+  { id: 'F4', nome: 'Quanto posso gastar?', passos: [
+    { texto: 'Disponível e limites no painel', tela: 'T04' },
+    { texto: 'Planejamento por categoria', tela: 'T13' },
+    { texto: 'Visão "gasto" do cartão', acao: () => { S.cardView = 'gasto'; go('T07'); } },
+  ] },
+  { id: 'F5', nome: 'Virar o período', passos: [
+    { texto: 'Ir para Novembro', acao: () => { S.periodo = 2; go('T04'); } },
+    { texto: 'Voltar para Outubro', acao: () => { S.periodo = 1; go('T04'); } },
+  ] },
+];
+
+const G = app.config.globalProperties;
+Object.assign(G, { S, brl, go, openSheet, toast, suriSvg, suriUri, PERIODOS, CARTOES, CONTAS, LANC, CASA_TOTAL, PLANO, CATEGORIAS, FATURA_NUBANK, ETAPAS, STEPS, MESES, setDark });
+
+const modeProps = { props: { mode: { type: String, default: 'mobile' } }, computed: { desk() { return this.mode === 'desktop'; } } };
+
+/* Barra de uso de limite */
+app.component('limite', {
+  props: ['label', 'usado', 'total', 'sub'],
+  computed: {
+    r() { return this.total ? Math.min(1, this.usado / this.total) : 0; },
+    cor() { return this.r >= 1 ? 'negative' : this.r >= 0.8 ? 'warning' : 'positive'; },
+  },
+  template: `<div class="stack" style="gap:6px">
+    <div class="row-money"><span>{{ label }}</span><b class="tnum">{{ brl(usado) }} <span class="text-muted" style="font-weight:400">de {{ brl(total) }}</span></b></div>
+    <q-linear-progress :value="r" :color="cor" track-color="grey-4" rounded size="10px" :aria-label="label" />
+    <div class="lbl">{{ sub || ('Ainda dá para gastar ' + brl(Math.max(0, total - usado))) }}</div>
+  </div>`,
+});
+
+/* Seletor de período (RF07) */
+app.component('periodo-sel', {
+  mixins: [modeProps],
+  template: `<div class="period-sel">
+    <q-btn flat round dense icon="sym_r_chevron_left" aria-label="Período anterior" :disable="S.periodo === 0" @click="S.periodo--" />
+    <div style="text-align:center;min-width:0">
+      <div class="name">{{ PERIODOS[S.periodo].nome }} <q-badge v-if="PERIODOS[S.periodo].atual" color="secondary" label="atual" style="vertical-align:middle" /></div>
+      <div class="dates tnum">{{ PERIODOS[S.periodo].ini }} a {{ PERIODOS[S.periodo].fim }}</div>
+    </div>
+    <q-btn flat round dense icon="sym_r_chevron_right" aria-label="Próximo período" :disable="S.periodo === PERIODOS.length - 1" @click="S.periodo++" />
+  </div>`,
+});
+
+/* Aparelho: o app inteiro em um layout Quasar em modo container */
+app.component('device', {
+  mixins: [modeProps],
+  computed: {
+    auth() { return ['T01', 'T02', 'T03'].includes(S.screen); },
+    nav() {
+      return [
+        { id: 'T04', label: 'Período', icon: 'sym_r_visibility' },
+        { id: 'T05', label: 'Lançamentos', icon: 'sym_r_receipt_long' },
+        { id: 'T07', label: 'Cartões', icon: 'sym_r_credit_card' },
+        { id: 'T12', label: 'Família', icon: 'sym_r_family_restroom', desk: true },
+        { id: 'T13', label: 'Planejamento', icon: 'sym_r_target', desk: true },
+        { id: 'T10', label: 'Contas', icon: 'sym_r_account_balance', desk: true },
+        { id: 'T14', label: 'Categorias', icon: 'sym_r_category', desk: true },
+        { id: 'T16', label: 'Configurações', icon: 'sym_r_settings', desk: true },
+      ];
+    },
+    tab() { return ['T04', 'T05', 'T07'].includes(S.screen) ? S.screen : (S.screen === 'T08' ? 'T07' : (S.screen === 'T15' ? 'T05' : 'mais')); },
+    comp() { return 's-' + S.screen.toLowerCase(); },
+  },
+  template: `<div class="device" :class="mode">
+    <q-layout view="hHh LpR fFf" container :style="{ height: desk ? '900px' : '760px' }">
+      <q-header v-if="!auth">
+        <q-toolbar style="min-height:64px;gap:8px">
+          <template v-if="desk">
+            <div class="row items-center no-wrap" style="width:220px;gap:8px">
+              <span v-html="suriSvg('vigia', 26)"></span><b class="font-display" style="font-size:18px">Suricate</b>
+            </div>
+            <q-space /><periodo-sel :mode="mode" /><q-space />
+            <q-btn color="primary" icon="sym_r_add" label="Novo lançamento" unelevated @click="openSheet('T06')" />
+            <q-btn flat round icon="sym_r_notifications" aria-label="Avisos" />
+            <q-avatar color="secondary" text-color="white" size="36px">P</q-avatar>
+          </template>
+          <template v-else>
+            <q-space /><periodo-sel :mode="mode" /><q-space />
+          </template>
+        </q-toolbar>
+      </q-header>
+
+      <q-drawer v-if="desk && !auth" :model-value="true" side="left" :width="240" :breakpoint="400" persistent bordered>
+        <q-list padding>
+          <q-item v-for="n in nav" :key="n.id" clickable :active="S.screen === n.id || (n.id === 'T07' && S.screen === 'T08') || (n.id === 'T05' && S.screen === 'T15')"
+            active-class="text-primary" @click="go(n.id)" style="border-radius:8px;margin:2px 8px">
+            <q-item-section avatar><q-icon :name="n.icon" /></q-item-section>
+            <q-item-section>{{ n.label }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-drawer>
+
+      <q-footer v-if="!desk && !auth">
+        <div class="row no-wrap items-stretch foot-nav" style="height:64px">
+          <q-btn v-for="n in nav.slice(0, 2)" :key="n.id" flat stack no-caps class="col" :color="tab === n.id ? 'primary' : ''" :icon="n.icon" :label="n.label" size="sm" @click="go(n.id)" />
+          <div class="flex flex-center" style="width:64px;flex:none"><q-btn round unelevated color="primary" icon="sym_r_add" size="lg" aria-label="Novo lançamento" @click="openSheet('mais-novo')" /></div>
+          <q-btn flat stack no-caps class="col" :color="tab === 'T07' ? 'primary' : ''" icon="sym_r_credit_card" label="Cartões" size="sm" @click="go('T07')" />
+          <q-btn flat stack no-caps class="col" :color="tab === 'mais' ? 'primary' : ''" icon="sym_r_menu" label="Mais" size="sm" @click="S.more = true" />
+        </div>
+      </q-footer>
+
+      <q-page-container>
+        <q-page :padding="!auth" :style="{ padding: auth ? '0' : (desk ? '24px 28px' : '16px') }">
+          <component :is="comp" :mode="mode" />
+        </q-page>
+      </q-page-container>
+    </q-layout>
+
+    <div v-if="S.more && !desk" class="sheet-backdrop mobile" @click.self="S.more = false">
+      <div class="sheet">
+        <h3>Mais</h3>
+        <q-list>
+          <q-item v-for="n in nav.filter(x => x.desk)" :key="n.id" clickable @click="go(n.id)">
+            <q-item-section avatar><q-icon :name="n.icon" color="primary" /></q-item-section>
+            <q-item-section>{{ n.label }}</q-item-section>
+            <q-item-section side><q-icon name="sym_r_chevron_right" /></q-item-section>
+          </q-item>
+        </q-list>
+      </div>
+    </div>
+    <div v-if="S.sheet === 'mais-novo'" class="sheet-backdrop" :class="mode" @click.self="S.sheet = null">
+      <div class="sheet">
+        <h3>Novo lançamento</h3>
+        <q-list>
+          <q-item v-for="o in [['despesa','Despesa','sym_r_remove_circle','negative'],['receita','Receita','sym_r_add_circle','positive'],['cartao','Compra no cartão','sym_r_credit_card','primary'],['transf','Transferência','sym_r_swap_horiz','secondary']]"
+            :key="o[0]" clickable @click="S.novo.tipo = o[0]; openSheet('T06')">
+            <q-item-section avatar><q-icon :name="o[2]" :color="o[3]" /></q-item-section>
+            <q-item-section>{{ o[1] }}</q-item-section>
+          </q-item>
+        </q-list>
+      </div>
+    </div>
+    <div v-if="['T06','T09','T11'].includes(S.sheet)" class="sheet-backdrop" :class="mode" @click.self="S.sheet = null">
+      <div class="sheet"><component :is="'s-' + S.sheet.toLowerCase()" :mode="mode" /></div>
+    </div>
+    <div v-if="S.toast" class="toast" role="status">{{ S.toast }}</div>
+  </div>`,
+});
+</script>
+<script src="screens.js"></script>
+</body>
+</html>
