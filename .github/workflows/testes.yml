@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: testes-${{ github.event_name }}-${{ github.event.pull_request.number || github.sha }}
+  group: testes-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.deployment.id || github.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -75,7 +75,10 @@ jobs:
         run: npm run build
 
   e2e:
-    if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
+    # Só deploys da Vercel: as Actions de migração também criam deployments (ambientes do GitHub)
+    if: >-
+      github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
+      && contains(github.event.deployment_status.environment_url, '.vercel.app')
     runs-on: ubuntu-latest
     defaults:
       run:
