@@ -146,10 +146,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .device.desktop .toast { bottom: 28px; }
 .swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
 .swatch.on { border-color: var(--q-primary); box-shadow: 0 0 0 2px var(--app-surface) inset; }
-.chat { display: flex; flex-direction: column; gap: 2px; }
-.chat .q-message-text { border-radius: 14px; }
-.achv { align-self: center; margin: 8px 0; }
-.onb-answer { border-top: 1px solid var(--app-line); background: var(--app-surface); padding: 12px; display: grid; gap: 8px; overflow-x: hidden; }
+.onb-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--app-line); border-radius: 10px; background: var(--app-surface); }
+.onb-item .grow { flex: 1; min-width: 0; }
+.onb-add { border: 1px dashed var(--app-line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; }
+.onb-bar { border-top: 1px solid var(--app-line); background: var(--app-surface); padding: 12px 16px; display: flex; gap: 8px; align-items: center; }
 .device .q-page { overflow-x: hidden; }
 .auth-wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
 .auth-card { width: 100%; max-width: 380px; display: grid; gap: 14px; }
@@ -376,54 +376,27 @@ function toast(msg) { S.toast = msg; clearTimeout(toastTimer); toastTimer = setT
 function go(id) { S.sheet = null; S.more = false; S.screen = id; }
 function openSheet(id) { S.more = false; S.sheet = id; }
 
-/* ---------- Onboarding (roteiro do Suri) ---------- */
+/* ---------- Onboarding: cadastro guiado pelo Suri ---------- */
 const ETAPAS = ['Boas-vindas', 'Sua renda', 'Contas bancárias', 'Cartões', 'Contas fixas', 'Família', 'Objetivos'];
-const STEPS = [
-  { etapa: 0, suri: 'Oi! Eu sou o Suri, o suricato que vai ficar de vigia nas suas finanças. Como posso te chamar?', tipo: 'texto', campo: 'nome', label: 'Seu nome' },
-  { etapa: 0, suri: n => `Prazer, ${n.nome}! O que você mais quer agora?`, tipo: 'botoes', campo: 'objetivo', opcoes: ['Sair do vermelho', 'Juntar dinheiro', 'Quitar dívida', 'Organizar as contas'], outros: true },
-  { etapa: 1, suri: 'Vamos à renda. Em que dia o salário costuma cair e quanto, em média?', tipo: 'campos', campos: [{ k: 'dia', label: 'Dia', w: 4 }, { k: 'salario', label: 'Valor médio (R$)', w: 8 }], resumo: n => `Dia ${n.dia} · R$ ${n.salario}` },
-  { etapa: 1, suri: n => `E quando o dia ${n.dia} cai no fim de semana ou feriado?`, tipo: 'botoes', campo: 'fds', opcoes: ['Antecipa', 'Adia', 'Não muda', 'Não sei'] },
-  { etapa: 1, suri: 'O salário costuma atrasar?', tipo: 'botoes', campo: 'atrasa', opcoes: ['Sim', 'Não'] },
-  { etapa: 1, se: n => n.atrasa === 'Sim', suri: 'Quantos dias, no máximo?', tipo: 'campos', campos: [{ k: 'diasAtraso', label: 'Dias', w: 4 }], resumo: n => `Até ${n.diasAtraso} dias` },
-  { etapa: 1, suri: 'Tem outras entradas fixas? Aluguel, freela, pensão...', tipo: 'lista', campo: 'rendas', colunas: ['Descrição', 'Dia', 'Valor (R$)'], vazio: 'Não tenho', conquista: 'Ponto de partida' },
-  { etapa: 2, suri: 'Em quais contas você tem dinheiro hoje, e quanto em cada uma?', tipo: 'lista', campo: 'contas', colunas: ['Conta', 'Banco', 'Saldo (R$)'], conquista: 'Toca do suricato' },
-  { etapa: 3, suri: 'Agora os cartões de crédito: em que dia cada um fecha e vence?', tipo: 'lista', campo: 'cartoes', colunas: ['Cartão', 'Fecha', 'Vence'],
-    depois: 'Fatura fechando dia 17? Anotado. Compras no Nubank entre 17/10 e 16/11 vão para a fatura de 24/11, paga com o salário de 15/11. Suricato não esquece!', conquista: 'Vigia do cartão' },
-  { etapa: 4, suri: 'Quais destas contas fixas você paga todo mês?', tipo: 'chips', campo: 'fixas', opcoes: ['Aluguel', 'Condomínio', 'Água', 'Luz', 'Internet', 'Financiamento', 'Seguro do carro', 'Celular'], multi: true },
-  { etapa: 4, suri: 'Alguma delas perde desconto se atrasar?', tipo: 'chips', campo: 'naoAtrasar', opcoes: ['Aluguel', 'Condomínio', 'Nenhuma'], multi: true, conquista: 'Nada me escapa' },
-  { etapa: 5, suri: 'Você divide contas com alguém?', tipo: 'botoes', campo: 'divide', opcoes: ['Sim', 'Não'] },
-  { etapa: 5, se: n => n.divide === 'Sim', suri: 'Com quem, em que proporção, e existe uma conta familiar com cartão do casal?', tipo: 'campos',
-    campos: [{ k: 'parceiro', label: 'Nome', w: 6 }, { k: 'pct', label: 'Sua parte (%)', w: 6 }, { k: 'contaFam', label: 'Conta familiar', w: 6 }, { k: 'cartaoFam', label: 'Cartão do casal', w: 6 }],
-    resumo: n => `${n.parceiro} · você paga ${n.pct}% · ${n.contaFam} com cartão ${n.cartaoFam}`,
-    depois: 'Combinado: o que você transferir para a conta familiar já sai do seu disponível na hora, mesmo antes de o boleto ser pago.', conquista: 'Bando unido' },
-  { etapa: 6, suri: 'O que você quer conquistar? Escolha na ordem de prioridade.', tipo: 'chips', campo: 'metas', opcoes: ['Reserva de segurança', 'Quitar o carro', 'Reserva de emergência', 'Viagem', 'Aposentadoria'], multi: true },
-  { etapa: 6, suri: 'Última! Quanto quer gastar por período no cartão e no débito/Pix?', tipo: 'campos', campos: [{ k: 'limCartao', label: 'Cartão (R$)', w: 6 }, { k: 'limDebito', label: 'Débito/Pix (R$)', w: 6 }],
-    resumo: n => `Cartão R$ ${n.limCartao} · Débito/Pix R$ ${n.limDebito}`, conquista: 'Olhando o horizonte' },
-  { etapa: 7, suri: 'Tudo pronto! Seu primeiro período é Outubro · 15/10/2026 a 14/11/2026. Você tem R$ 166 disponíveis e o próximo vencimento importante é o aluguel, em 22/10.', tipo: 'fim' },
-];
+const CONQUISTAS = ['Primeiro passo', 'Ponto de partida', 'Toca do suricato', 'Vigia do cartão', 'Nada me escapa', 'Bando unido', 'Olhando o horizonte'];
+const FIXAS_SUGERIDAS = ['Aluguel', 'Condomínio', 'Água', 'Luz', 'Internet', 'Financiamento do carro', 'Seguro do carro', 'Celular'];
 function novoOnb() {
   return {
-    i: 0, msgs: [], notas: [], conquistas: [], outros: false, sel: [],
-    n: { nome: 'Phelipe', dia: '15', salario: '7.500', diasAtraso: '2', parceiro: 'Agatha', pct: '50', contaFam: 'Inter', cartaoFam: 'Sim', limCartao: '1.000', limDebito: '300', outroTexto: '' },
-    listas: {
-      rendas: [['Aluguel Green Park', '8', '810']],
-      contas: [['Conta Pessoal', 'Nubank', '1.240'], ['Conta Familiar', 'Inter', '3.900']],
-      cartoes: [['Nubank', '17', '24'], ['Leroy Pay', '11', '21']],
-    },
+    passo: 0, conquistas: [],
+    nome: 'Phelipe', objetivo: 'Quitar dívida', objetivoOutro: '',
+    dia: 15, salario: 7500, fds: 'antecipa', atrasa: false, diasAtraso: 2,
+    rendas: [{ desc: 'Aluguel Green Park', dia: 8, valor: 810 }], novaRenda: { desc: '', dia: null, valor: null },
+    contas: [{ nome: 'Conta Pessoal', banco: 'Nubank', tipo: 'Conta corrente', saldo: 1240 }], novaConta: { nome: '', banco: 'Inter', tipo: 'Familiar', saldo: null },
+    cartoes: [{ nome: 'Nubank', fecha: 17, vence: 24, limite: 19150 }], novoCartao: { nome: '', fecha: null, vence: null, limite: null },
+    fixas: [
+      { desc: 'Aluguel', dia: 22, valor: 2539.28, naoAtrasar: true, dividir: true },
+      { desc: 'Condomínio', dia: 14, valor: 521.08, naoAtrasar: true, dividir: true },
+    ],
+    divide: true, parceiro: 'Agatha', pct: 50, contaFam: 'Conta Familiar', cartaoFam: '',
+    metas: ['Reserva de segurança', 'Quitar o carro'], limCartao: 1000, limDebito: 300,
   };
 }
-function suriFala(o) { const st = STEPS[o.i]; o.msgs.push({ de: 'suri', txt: typeof st.suri === 'function' ? st.suri(o.n) : st.suri }); }
-function iniciarOnb() { S.onb = novoOnb(); suriFala(S.onb); }
-function responder(texto, nota) {
-  const o = S.onb, st = STEPS[o.i];
-  o.msgs.push({ de: 'eu', txt: texto });
-  if (nota) o.notas.push({ etapa: ETAPAS[st.etapa], txt: nota });
-  if (st.depois) o.msgs.push({ de: 'suri', txt: st.depois });
-  if (st.conquista) { o.msgs.push({ de: 'conquista', txt: st.conquista }); o.conquistas.push(st.conquista); }
-  o.outros = false; o.sel = [];
-  do { o.i++; } while (STEPS[o.i] && STEPS[o.i].se && !STEPS[o.i].se(o.n));
-  suriFala(o);
-}
+function iniciarOnb(passo = 0) { S.onb = novoOnb(); S.onb.passo = passo; }
 iniciarOnb();
 
 /* ---------- Regras do cartão (RN08–RN12) ---------- */
@@ -461,7 +434,6 @@ const app = createApp({
     function jump(id) {
       const t = SCREENS.find(x => x.id === id);
       if (t.sheet) { S.screen = t.base; S.sheet = t.sheet; } else go(id);
-      if (id === 'T03' && S.onb.i >= STEPS.length - 1) iniciarOnb();
     }
     function runStep(p) { p.acao ? p.acao() : jump(p.tela); }
     return { S, SCREENS, FLOWS, stage, deskScale, current, jump, runStep, suriSvg, setDark };
@@ -481,7 +453,7 @@ function setDark(on) {
 const FLOWS = [
   { id: 'F1', nome: 'Primeiro acesso', passos: [
     { texto: 'Tela de boas-vindas', tela: 'T01' },
-    { texto: 'Conversa com o Suri, do começo', acao: () => { iniciarOnb(); go('T03'); } },
+    { texto: 'Cadastro guiado pelo Suri, do começo', acao: () => { iniciarOnb(); go('T03'); } },
     { texto: 'Painel do primeiro período', tela: 'T04' },
   ] },
   { id: 'F2', nome: 'Compra no cartão', passos: [
@@ -506,7 +478,7 @@ const FLOWS = [
 ];
 
 const G = app.config.globalProperties;
-Object.assign(G, { S, brl, go, openSheet, toast, suriSvg, suriUri, PERIODOS, CARTOES, CONTAS, LANC, CASA_TOTAL, PLANO, CATEGORIAS, FATURA_NUBANK, ETAPAS, STEPS, MESES, setDark });
+Object.assign(G, { S, brl, go, openSheet, toast, suriSvg, suriUri, PERIODOS, CARTOES, CONTAS, LANC, CASA_TOTAL, PLANO, CATEGORIAS, FATURA_NUBANK, ETAPAS, CONQUISTAS, FIXAS_SUGERIDAS, MESES, setDark });
 
 const modeProps = { props: { mode: { type: String, default: 'mobile' } }, computed: { desk() { return this.mode === 'desktop'; } } };
 

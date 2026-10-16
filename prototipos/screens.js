@@ -33,7 +33,7 @@ app.component('s-t02', {
       <div class="auth-card">
         <div class="row items-center no-wrap" style="gap:12px">
           <span v-html="suriSvg('feliz', 48)"></span>
-          <div><h2 style="font-size:22px;font-weight:800;margin:0">Criar conta</h2><div class="lbl">Leva menos de um minuto. Depois, o Suri te faz umas perguntas.</div></div>
+          <div><h2 style="font-size:22px;font-weight:800;margin:0">Criar conta</h2><div class="lbl">Leva menos de um minuto. Depois, o Suri te ajuda a cadastrar tudo.</div></div>
         </div>
         <q-input id="t02-nome" outlined dense v-model="nome" label="Nome" />
         <q-input id="t02-email" outlined dense v-model="email" label="E-mail" type="email" />
@@ -46,117 +46,260 @@ app.component('s-t02', {
   </div>`,
 });
 
-/* T03 · Onboarding do Suri (RF03, RF04) */
+/* T03 · Onboarding: cadastro guiado pelo Suri (RF03, RF04) */
 app.component('s-t03', {
   mixins: [modeProps],
   computed: {
     o() { return S.onb; },
-    st() { return STEPS[S.onb.i]; },
-    etapa() { return Math.min(this.st.etapa, ETAPAS.length - 1); },
-    progresso() { return Math.min(1, this.st.etapa / ETAPAS.length); },
-  },
-  watch: { 'o.msgs.length'() { this.$nextTick(() => { const el = this.$refs.chat; if (el) el.scrollTop = el.scrollHeight; }); } },
-  mounted() { const el = this.$refs.chat; if (el) el.scrollTop = el.scrollHeight; },
-  methods: {
-    botao(op) { this.o.n[this.st.campo] = op; responder(op, `${ETAPAS[this.st.etapa]}: ${op}`); },
-    outro() { const t = this.o.n.outroTexto || 'Outro'; this.o.n[this.st.campo] = t; this.o.n.outroTexto = ''; responder(t, `Objetivo: ${t}`); },
-    campos() { const r = this.st.resumo(this.o.n); responder(r, r); },
-    texto() { const v = this.o.n[this.st.campo]; responder(v, `Nome: ${v}`); },
-    lista(vazia) {
-      if (vazia) { this.o.listas[this.st.campo] = []; responder(this.st.vazio, `${ETAPAS[this.st.etapa]}: nenhuma`); return; }
-      const linhas = this.o.listas[this.st.campo].filter(l => l[0]);
-      const r = linhas.map(l => l.join(' · ')).join('; ');
-      responder(r, `${ETAPAS[this.st.etapa]}: ${r}`);
+    fim() { return this.o.passo >= ETAPAS.length; },
+    pessoais() { return this.o.contas.filter(c => c.tipo !== 'Familiar'); },
+    saldoPessoal() { return this.pessoais.reduce((s, c) => s + (Number(c.saldo) || 0), 0); },
+    renda() { return (Number(this.o.salario) || 0) + this.o.rendas.reduce((s, r) => s + (Number(r.valor) || 0), 0); },
+    minhasFixas() {
+      const o = this.o;
+      return o.fixas.reduce((s, f) => s + (Number(f.valor) || 0) * (o.divide && f.dividir ? (100 - o.pct) / 100 : 1), 0);
     },
-    chip(op) { const i = this.o.sel.indexOf(op); i >= 0 ? this.o.sel.splice(i, 1) : this.o.sel.push(op); },
-    chips() { const r = this.o.sel.length ? this.o.sel.join(', ') : 'Nenhuma'; this.o.n[this.st.campo] = r; responder(r, `${ETAPAS[this.st.etapa]}: ${r}`); },
-    addLinha() { this.o.listas[this.st.campo].push(['', '', '']); },
+    limites() { return (Number(this.o.limCartao) || 0) + (Number(this.o.limDebito) || 0); },
+    sobra() { return this.renda - this.minhasFixas - this.limites; },
+    periodo() {
+      const d = Math.min(28, Math.max(1, Number(this.o.dia) || 15));
+      return { nome: 'Outubro', datas: d === 1 ? '01/10/2026 a 31/10/2026' : `${pad(d)}/10/2026 a ${pad(d - 1)}/11/2026` };
+    },
+    dicaCartao() {
+      const c = this.o.cartoes[0]; if (!c || !c.fecha || !c.vence) return '';
+      const f = Number(c.fecha), v = Number(c.vence), d = Number(this.o.dia) || 15, mes = v > f ? '11' : '12';
+      return `Compras no ${c.nome} feitas a partir do dia ${f} vão para a fatura que vence em ${pad(v)}/${mes}, paga com o salário de ${pad(d)}/${mes}. Suricato não esquece!`;
+    },
+    sugestoes() { return FIXAS_SUGERIDAS.filter(n => !this.o.fixas.some(f => f.desc === n)); },
   },
-  template: `<div :style="{ height: desk ? '900px' : '760px', display: 'grid', gridTemplateColumns: desk ? 'minmax(0,1fr) 340px' : 'minmax(0,1fr)' }">
-    <div style="display:flex;flex-direction:column;min-height:0;height:100%">
-      <div class="q-pa-md" style="border-bottom:1px solid var(--app-line);background:var(--app-surface)">
-        <div class="row items-center no-wrap" style="gap:10px">
-          <span v-html="suriSvg('vigia', 30)"></span>
-          <div class="col">
-            <div style="font-weight:700">{{ st.tipo === 'fim' ? 'Tudo pronto' : 'Etapa ' + (etapa + 1) + ' de ' + ETAPAS.length + ' · ' + ETAPAS[etapa] }}</div>
-            <q-linear-progress :value="st.tipo === 'fim' ? 1 : progresso" color="primary" rounded size="8px" style="margin-top:6px" aria-label="Progresso do onboarding" />
-          </div>
-          <q-btn flat dense no-caps label="Pular" color="primary" @click="go('T04')" />
-        </div>
-      </div>
-      <div ref="chat" class="chat q-pa-md" style="flex:1;overflow-y:auto" :style="{ maxWidth: desk ? '760px' : 'none', width: '100%', margin: '0 auto' }">
-        <template v-for="(m, k) in o.msgs" :key="k">
-          <q-chip v-if="m.de === 'conquista'" class="achv" icon="sym_r_emoji_events" color="secondary" text-color="white">Conquista desbloqueada: {{ m.txt }}</q-chip>
-          <q-chat-message v-else :sent="m.de === 'eu'" :avatar="m.de === 'suri' ? suriUri(k === o.msgs.length - 1 && st.tipo === 'fim' ? 'comemorando' : 'feliz') : undefined"
-            :name="m.de === 'suri' ? 'Suri' : o.n.nome" :text="[m.txt]"
-            :bg-color="m.de === 'eu' ? 'primary' : (S.dark ? 'grey-9' : 'orange-1')" :text-color="m.de === 'eu' ? 'white' : (S.dark ? 'grey-2' : 'grey-10')" />
-        </template>
-      </div>
-      <div class="onb-answer">
-        <template v-if="st.tipo === 'texto'">
-          <div class="row no-wrap" style="gap:8px">
-            <q-input id="t03-texto" class="col" outlined dense v-model="o.n[st.campo]" :label="st.label" @keyup.enter="texto" />
-            <q-btn unelevated color="primary" icon="sym_r_send" aria-label="Enviar" @click="texto" />
-          </div>
-        </template>
-        <template v-else-if="st.tipo === 'botoes'">
-          <div class="row" style="gap:8px">
-            <q-btn v-for="op in st.opcoes" :key="op" outline color="primary" no-caps :label="op" @click="botao(op)" />
-            <q-btn v-if="st.outros" outline color="primary" no-caps label="Outros" @click="o.outros = true" />
-          </div>
-          <div v-if="o.outros" class="row no-wrap" style="gap:8px">
-            <q-input id="t03-outro" class="col" outlined dense v-model="o.n.outroTexto" label="Escreva com suas palavras" autofocus @keyup.enter="outro" />
-            <q-btn unelevated color="primary" icon="sym_r_send" aria-label="Enviar" @click="outro" />
-          </div>
-        </template>
-        <template v-else-if="st.tipo === 'campos'">
-          <div class="row q-col-gutter-sm">
-            <div v-for="c in st.campos" :key="c.k" :class="'col-' + c.w"><q-input :id="'t03-' + c.k" outlined dense v-model="o.n[c.k]" :label="c.label" /></div>
-          </div>
-          <q-btn unelevated color="primary" label="Continuar" @click="campos" />
-        </template>
-        <template v-else-if="st.tipo === 'lista'">
-          <div v-for="(l, li) in o.listas[st.campo]" :key="li" class="row q-col-gutter-xs">
-            <div v-for="(col, ci) in st.colunas" :key="ci" :class="ci === 0 ? 'col-6' : 'col-3'"><q-input :id="'t03-l' + li + ci" outlined dense v-model="l[ci]" :label="col" /></div>
-          </div>
-          <div class="row" style="gap:8px">
-            <q-btn flat color="primary" icon="sym_r_add" no-caps label="Adicionar outra" @click="addLinha" />
-            <q-space />
-            <q-btn v-if="st.vazio" outline color="primary" no-caps :label="st.vazio" @click="lista(true)" />
-            <q-btn unelevated color="primary" label="Continuar" @click="lista(false)" />
-          </div>
-        </template>
-        <template v-else-if="st.tipo === 'chips'">
-          <div class="row" style="gap:4px">
-            <q-chip v-for="op in st.opcoes" :key="op" clickable :selected="o.sel.includes(op)" @click="chip(op)"
-              :color="o.sel.includes(op) ? 'primary' : undefined" :text-color="o.sel.includes(op) ? 'white' : undefined">
-              <span v-if="o.sel.includes(op)" class="tnum" style="margin-right:4px">{{ o.sel.indexOf(op) + 1 }}.</span>{{ op }}
-            </q-chip>
-          </div>
-          <q-btn unelevated color="primary" label="Continuar" @click="chips" />
-        </template>
-        <template v-else>
-          <q-btn unelevated color="primary" icon-right="sym_r_arrow_forward" label="Ver meu período" @click="go('T04')" />
-        </template>
-      </div>
-    </div>
-    <aside v-if="desk" class="q-pa-lg" style="border-left:1px solid var(--app-line);background:var(--app-surface);overflow-y:auto">
-      <div class="row items-center no-wrap" style="gap:12px;margin-bottom:16px">
-        <span v-html="suriSvg('feliz', 52)"></span>
-        <div><div class="sec-title" style="font-size:18px">O que o Suri anotou</div><div class="lbl">Dá para mudar tudo depois em Configurações.</div></div>
-      </div>
-      <div v-if="!o.notas.length" class="lbl">As respostas aparecem aqui conforme a conversa avança.</div>
-      <q-list dense>
-        <q-item v-for="(n, k) in o.notas" :key="k" style="padding-left:0">
-          <q-item-section avatar style="min-width:32px"><q-icon name="sym_r_check_circle" color="positive" /></q-item-section>
-          <q-item-section><q-item-label caption>{{ n.etapa }}</q-item-label><q-item-label>{{ n.txt }}</q-item-label></q-item-section>
+  methods: {
+    avancar() {
+      const o = this.o, c = CONQUISTAS[o.passo];
+      if (!o.conquistas.includes(c)) { o.conquistas.push(c); toast('Conquista desbloqueada: ' + c); }
+      o.passo++;
+      this.$nextTick(() => { const el = this.$refs.corpo; if (el) el.scrollTop = 0; });
+    },
+    voltar() { if (this.o.passo > 0) this.o.passo--; },
+    pular() { this.o.passo++; },
+    add(lista, novo, vazio) {
+      const n = this.o[novo]; if (!n.nome && !n.desc) return;
+      this.o[lista].push({ ...n }); this.o[novo] = { ...vazio };
+    },
+    fixa(nome) { this.o.fixas.push({ desc: nome, dia: 5, valor: null, naoAtrasar: false, dividir: this.o.divide }); },
+    meta(m) { const i = this.o.metas.indexOf(m); i >= 0 ? this.o.metas.splice(i, 1) : this.o.metas.push(m); },
+  },
+  template: `<div :style="{ height: desk ? '900px' : '760px', display: 'grid', gridTemplateColumns: desk ? '250px minmax(0,1fr) 340px' : 'minmax(0,1fr)' }">
+    <aside v-if="desk" class="q-pa-lg" style="border-right:1px solid var(--app-line);background:var(--app-surface);overflow-y:auto">
+      <div class="row items-center no-wrap" style="gap:8px;margin-bottom:20px"><span v-html="suriSvg('vigia', 28)"></span><b class="font-display" style="font-size:18px">Suricate</b></div>
+      <q-list>
+        <q-item v-for="(e, i) in ETAPAS" :key="e" clickable :active="o.passo === i" active-class="text-primary" style="border-radius:8px" @click="o.passo = i">
+          <q-item-section avatar style="min-width:36px">
+            <q-icon v-if="o.conquistas.includes(CONQUISTAS[i])" name="sym_r_check_circle" color="positive" />
+            <q-avatar v-else size="24px" :color="o.passo === i ? 'primary' : 'grey-4'" :text-color="o.passo === i ? 'white' : 'grey-8'" style="font-size:12px">{{ i + 1 }}</q-avatar>
+          </q-item-section>
+          <q-item-section>{{ e }}</q-item-section>
         </q-item>
       </q-list>
-      <div class="sec-title" style="font-size:16px;margin-top:20px">Conquistas · {{ o.conquistas.length }} de 6</div>
+      <div class="lbl" style="margin-top:16px">Conquistas: {{ o.conquistas.length }} de {{ CONQUISTAS.length }}</div>
+      <q-linear-progress :value="o.conquistas.length / CONQUISTAS.length" color="secondary" rounded size="8px" style="margin-top:6px" aria-label="Conquistas" />
+    </aside>
+
+    <div style="display:flex;flex-direction:column;min-height:0;height:100%">
+      <div v-if="!desk" class="q-px-md q-pt-md q-pb-sm" style="border-bottom:1px solid var(--app-line);background:var(--app-surface)">
+        <div class="row items-center no-wrap" style="gap:8px">
+          <q-btn v-if="o.passo > 0 && !fim" flat round dense icon="sym_r_arrow_back" aria-label="Etapa anterior" @click="voltar" />
+          <div class="col"><div class="lbl">{{ fim ? 'Tudo pronto' : 'Etapa ' + (o.passo + 1) + ' de ' + ETAPAS.length }}</div><b>{{ fim ? 'Seu primeiro período' : ETAPAS[o.passo] }}</b></div>
+          <q-btn v-if="!fim" flat dense no-caps color="primary" label="Pular" @click="go('T04')" />
+        </div>
+        <q-linear-progress :value="Math.min(1, o.passo / ETAPAS.length)" color="primary" rounded size="6px" style="margin-top:8px" aria-label="Progresso do cadastro" />
+      </div>
+
+      <div ref="corpo" style="flex:1;overflow-y:auto;overflow-x:hidden" :class="desk ? 'q-pa-xl' : 'q-pa-md'">
+        <div class="stack" :style="{ maxWidth: desk ? '640px' : 'none', margin: '0 auto', gap: '16px' }">
+          <h2 v-if="desk && !fim" class="sec-title" style="font-size:24px">{{ ETAPAS[o.passo] }}</h2>
+
+          <template v-if="o.passo === 0">
+            <div class="suri-tip"><span v-html="suriSvg('feliz', 52)"></span><p><b>Oi! Eu sou o Suri.</b> Vou ficar de vigia nas suas finanças. Em 7 etapas a gente monta o seu primeiro período, e você já sai com tudo cadastrado.</p></div>
+            <q-input id="t03-nome" outlined v-model="o.nome" label="Como posso te chamar?" />
+            <div class="lbl">O que você mais quer agora?</div>
+            <div class="row" style="gap:4px">
+              <q-chip v-for="op in ['Sair do vermelho','Juntar dinheiro','Quitar dívida','Organizar as contas','Outros']" :key="op" clickable
+                :color="o.objetivo === op ? 'primary' : undefined" :text-color="o.objetivo === op ? 'white' : undefined" @click="o.objetivo = op">{{ op }}</q-chip>
+            </div>
+            <q-input v-if="o.objetivo === 'Outros'" id="t03-obj-outro" outlined dense v-model="o.objetivoOutro" label="Conte com suas palavras" />
+          </template>
+
+          <template v-else-if="o.passo === 1">
+            <div class="suri-tip"><span v-html="suriSvg('vigia', 48)"></span><p>Seu período começa quando o salário entra, e não no dia 1. Com o dia {{ o.dia }}, o primeiro será <b>{{ periodo.nome }} · {{ periodo.datas }}</b>.</p></div>
+            <div class="row q-col-gutter-sm">
+              <div class="col-4"><q-input id="t03-dia" outlined v-model.number="o.dia" type="number" min="1" max="28" label="Dia do salário" /></div>
+              <div class="col-8"><q-input id="t03-sal" outlined v-model.number="o.salario" type="number" label="Valor médio" prefix="R$" input-class="tnum" /></div>
+            </div>
+            <div class="lbl">Quando o dia {{ o.dia }} cai no fim de semana ou feriado</div>
+            <div class="row" style="gap:4px">
+              <q-chip v-for="op in [['antecipa','Antecipa'],['adia','Adia'],['nao-muda','Não muda'],['nao-sei','Não sei']]" :key="op[0]" clickable
+                :color="o.fds === op[0] ? 'primary' : undefined" :text-color="o.fds === op[0] ? 'white' : undefined" @click="o.fds = op[0]">{{ op[1] }}</q-chip>
+            </div>
+            <q-toggle id="t03-atrasa" v-model="o.atrasa" label="O salário costuma atrasar" />
+            <q-input v-if="o.atrasa" id="t03-dias" outlined dense v-model.number="o.diasAtraso" type="number" min="1" label="Quantos dias, no máximo?" style="max-width:220px" />
+            <div class="sec-title" style="font-size:16px">Outras entradas fixas</div>
+            <div v-for="(r, i) in o.rendas" :key="i" class="onb-item">
+              <q-icon name="sym_r_south_west" color="positive" />
+              <div class="grow"><div>{{ r.desc }}</div><div class="lbl">todo dia {{ r.dia }}</div></div>
+              <b class="tnum">{{ brl(Number(r.valor) || 0) }}</b>
+              <q-btn flat round dense icon="sym_r_delete" aria-label="Remover" @click="o.rendas.splice(i, 1)" />
+            </div>
+            <div class="onb-add">
+              <div class="row q-col-gutter-sm">
+                <div :class="desk ? 'col-6' : 'col-12'"><q-input id="t03-r-desc" outlined dense v-model="o.novaRenda.desc" label="Descrição" placeholder="Ex.: Freela" /></div>
+                <div :class="desk ? 'col-2' : 'col-4'"><q-input id="t03-r-dia" outlined dense v-model.number="o.novaRenda.dia" type="number" label="Dia" /></div>
+                <div :class="desk ? 'col-4' : 'col-8'"><q-input id="t03-r-val" outlined dense v-model.number="o.novaRenda.valor" type="number" label="Valor" prefix="R$" /></div>
+              </div>
+              <q-btn flat color="primary" icon="sym_r_add" no-caps label="Adicionar entrada" style="justify-self:start" @click="add('rendas', 'novaRenda', { desc: '', dia: null, valor: null })" />
+            </div>
+          </template>
+
+          <template v-else-if="o.passo === 2">
+            <div class="suri-tip"><span v-html="suriSvg('vigia', 48)"></span><p>Cadastre onde seu dinheiro está hoje. A <b>conta familiar</b> guarda o dinheiro da casa, então ela não entra no seu disponível.</p></div>
+            <div v-for="(c, i) in o.contas" :key="i" class="onb-item">
+              <q-avatar size="34px" :color="c.tipo === 'Familiar' ? 'secondary' : 'primary'" text-color="white" icon="sym_r_account_balance" />
+              <div class="grow"><div>{{ c.nome }}</div><div class="lbl">{{ c.banco }} · {{ c.tipo }}</div></div>
+              <b class="tnum">{{ brl(Number(c.saldo) || 0) }}</b>
+              <q-btn flat round dense icon="sym_r_delete" aria-label="Remover" @click="o.contas.splice(i, 1)" />
+            </div>
+            <div class="onb-add">
+              <div class="row q-col-gutter-sm">
+                <div class="col-7"><q-input id="t03-c-nome" outlined dense v-model="o.novaConta.nome" label="Nome da conta" placeholder="Ex.: Conta Familiar" /></div>
+                <div class="col-5"><q-input id="t03-c-saldo" outlined dense v-model.number="o.novaConta.saldo" type="number" label="Saldo hoje" prefix="R$" /></div>
+              </div>
+              <div class="row" style="gap:4px">
+                <q-chip v-for="b in ['Nubank','Inter','Itaú','Caixa','Outro']" :key="b" dense clickable :color="o.novaConta.banco === b ? 'primary' : undefined" :text-color="o.novaConta.banco === b ? 'white' : undefined" @click="o.novaConta.banco = b">{{ b }}</q-chip>
+              </div>
+              <div class="row" style="gap:4px">
+                <q-chip v-for="t in ['Conta corrente','Poupança','Investimentos','VR/VA','Familiar']" :key="t" dense clickable :color="o.novaConta.tipo === t ? 'secondary' : undefined" :text-color="o.novaConta.tipo === t ? 'white' : undefined" @click="o.novaConta.tipo = t">{{ t }}</q-chip>
+              </div>
+              <q-btn flat color="primary" icon="sym_r_add" no-caps label="Adicionar conta" style="justify-self:start" @click="add('contas', 'novaConta', { nome: '', banco: 'Nubank', tipo: 'Conta corrente', saldo: null })" />
+            </div>
+          </template>
+
+          <template v-else-if="o.passo === 3">
+            <div class="suri-tip"><span v-html="suriSvg('vigia', 48)"></span><p>{{ dicaCartao || 'Cadastre seus cartões com o dia em que a fatura fecha e o dia em que vence.' }}</p></div>
+            <div v-for="(c, i) in o.cartoes" :key="i" class="onb-item">
+              <q-avatar size="34px" color="primary" text-color="white" icon="sym_r_credit_card" />
+              <div class="grow"><div>{{ c.nome }}</div><div class="lbl">fecha dia {{ c.fecha }} · vence dia {{ c.vence }}</div></div>
+              <span class="lbl tnum">limite {{ brl(Number(c.limite) || 0) }}</span>
+              <q-btn flat round dense icon="sym_r_delete" aria-label="Remover" @click="o.cartoes.splice(i, 1)" />
+            </div>
+            <div class="onb-add">
+              <div class="row q-col-gutter-sm">
+                <div :class="desk ? 'col-6' : 'col-12'"><q-input id="t03-k-nome" outlined dense v-model="o.novoCartao.nome" label="Cartão" placeholder="Ex.: Leroy Pay" /></div>
+                <div :class="desk ? 'col-6' : 'col-12'"><q-input id="t03-k-lim" outlined dense v-model.number="o.novoCartao.limite" type="number" label="Limite" prefix="R$" /></div>
+                <div class="col-6"><q-input id="t03-k-fecha" outlined dense v-model.number="o.novoCartao.fecha" type="number" label="Fecha dia" /></div>
+                <div class="col-6"><q-input id="t03-k-vence" outlined dense v-model.number="o.novoCartao.vence" type="number" label="Vence dia" /></div>
+              </div>
+              <q-btn flat color="primary" icon="sym_r_add" no-caps label="Adicionar cartão" style="justify-self:start" @click="add('cartoes', 'novoCartao', { nome: '', fecha: null, vence: null, limite: null })" />
+            </div>
+          </template>
+
+          <template v-else-if="o.passo === 4">
+            <div class="suri-tip"><span v-html="suriSvg('vigia', 48)"></span><p>Toque nas contas que você paga todo mês e preencha valor e vencimento. Marque as que <b>perdem desconto se atrasarem</b>: eu aviso antes.</p></div>
+            <div class="row" style="gap:4px">
+              <q-chip v-for="n in sugestoes" :key="n" clickable icon="sym_r_add" outline color="primary" @click="fixa(n)">{{ n }}</q-chip>
+            </div>
+            <div v-for="(f, i) in o.fixas" :key="i" class="onb-item" style="flex-wrap:wrap">
+              <div class="grow" style="min-width:120px"><b>{{ f.desc }}</b></div>
+              <q-input :id="'t03-f-val' + i" outlined dense v-model.number="f.valor" type="number" label="Valor" prefix="R$" style="width:140px" />
+              <q-input :id="'t03-f-dia' + i" outlined dense v-model.number="f.dia" type="number" label="Dia" style="width:70px" />
+              <q-checkbox :id="'t03-f-at' + i" v-model="f.naoAtrasar" dense label="Não pode atrasar" />
+              <q-btn flat round dense icon="sym_r_delete" aria-label="Remover" @click="o.fixas.splice(i, 1)" />
+            </div>
+          </template>
+
+          <template v-else-if="o.passo === 5">
+            <div class="suri-tip"><span v-html="suriSvg('feliz', 48)"></span><p>Se você divide as contas da casa, o que você <b>transferir para a conta familiar já sai do seu disponível</b> na hora, mesmo antes de o boleto ser pago.</p></div>
+            <q-toggle id="t03-divide" v-model="o.divide" label="Divido contas com alguém" />
+            <template v-if="o.divide">
+              <div class="row q-col-gutter-sm">
+                <div class="col-7"><q-input id="t03-parc" outlined dense v-model="o.parceiro" label="Com quem" /></div>
+                <div class="col-5"><q-input id="t03-pct" outlined dense v-model.number="o.pct" type="number" min="0" max="100" :label="'Parte de ' + (o.parceiro || 'outra pessoa') + ' (%)'" /></div>
+              </div>
+              <div class="lbl">Conta familiar</div>
+              <div class="row" style="gap:4px">
+                <q-chip v-for="c in o.contas.map(x => x.nome).concat(['Ainda não tenho'])" :key="c" dense clickable :color="o.contaFam === c ? 'secondary' : undefined" :text-color="o.contaFam === c ? 'white' : undefined" @click="o.contaFam = c">{{ c }}</q-chip>
+              </div>
+              <div class="lbl">Cartão do casal</div>
+              <div class="row" style="gap:4px">
+                <q-chip v-for="c in o.cartoes.map(x => x.nome).concat(['Não temos'])" :key="c" dense clickable :color="o.cartaoFam === c ? 'secondary' : undefined" :text-color="o.cartaoFam === c ? 'white' : undefined" @click="o.cartaoFam = c">{{ c }}</q-chip>
+              </div>
+              <div class="lbl">Contas fixas divididas</div>
+              <div class="stack" style="gap:4px">
+                <q-checkbox v-for="(f, i) in o.fixas" :key="i" :id="'t03-div' + i" v-model="f.dividir" dense :label="f.desc + (f.valor ? ' · sua parte ' + brl(f.valor * (100 - o.pct) / 100) : '')" />
+              </div>
+            </template>
+          </template>
+
+          <template v-else-if="o.passo === 6">
+            <div class="suri-tip"><span v-html="suriSvg('vigia', 48)"></span><p>Escolha suas metas <b>na ordem de prioridade</b>. Quitar uma dívida com juros altos costuma render mais do que guardar, e eu vou te lembrar disso.</p></div>
+            <div class="row" style="gap:4px">
+              <q-chip v-for="m in ['Reserva de segurança','Quitar o carro','Reserva de emergência','Viagem','Aposentadoria']" :key="m" clickable
+                :color="o.metas.includes(m) ? 'primary' : undefined" :text-color="o.metas.includes(m) ? 'white' : undefined" @click="meta(m)">
+                <span v-if="o.metas.includes(m)" class="tnum" style="margin-right:4px">{{ o.metas.indexOf(m) + 1 }}.</span>{{ m }}
+              </q-chip>
+            </div>
+            <div class="sec-title" style="font-size:16px">Quanto quer gastar por período</div>
+            <div class="row q-col-gutter-sm">
+              <div class="col-6"><q-input id="t03-lcar" outlined v-model.number="o.limCartao" type="number" label="Cartão" prefix="R$" /></div>
+              <div class="col-6"><q-input id="t03-ldeb" outlined v-model.number="o.limDebito" type="number" label="Débito e Pix" prefix="R$" /></div>
+            </div>
+            <div v-if="!desk" class="suri-tip"><p>Com o que você cadastrou, sobram cerca de <b class="tnum">{{ brl(sobra) }}</b> por período para as metas.</p></div>
+          </template>
+
+          <template v-else>
+            <div style="text-align:center"><span v-html="suriSvg('comemorando', 90)"></span>
+              <h2 class="sec-title" style="font-size:24px;margin-top:8px">Tudo pronto, {{ o.nome }}!</h2>
+              <p class="text-muted" style="margin:4px 0 0">Seu primeiro período é <b>{{ periodo.nome }} · {{ periodo.datas }}</b>.</p></div>
+            <div class="grid-2">
+              <q-card><q-card-section><div class="lbl">Contas</div><b>{{ o.contas.length }}</b></q-card-section></q-card>
+              <q-card><q-card-section><div class="lbl">Cartões</div><b>{{ o.cartoes.length }}</b></q-card-section></q-card>
+              <q-card><q-card-section><div class="lbl">Contas fixas</div><b>{{ o.fixas.length }}</b></q-card-section></q-card>
+              <q-card><q-card-section><div class="lbl">Sobra estimada por período</div><b class="tnum">{{ brl(sobra) }}</b></q-card-section></q-card>
+            </div>
+            <q-btn unelevated color="primary" size="lg" icon-right="sym_r_arrow_forward" label="Ver meu período" @click="go('T04')" />
+          </template>
+        </div>
+      </div>
+
+      <div v-if="!fim" class="onb-bar">
+        <q-btn v-if="desk && o.passo > 0" flat color="primary" icon="sym_r_arrow_back" label="Voltar" @click="voltar" />
+        <q-btn flat color="primary" no-caps label="Pular etapa" @click="pular" />
+        <q-space />
+        <q-btn unelevated color="primary" :label="o.passo === ETAPAS.length - 1 ? 'Concluir' : 'Continuar'" icon-right="sym_r_arrow_forward" @click="avancar" />
+      </div>
+    </div>
+
+    <aside v-if="desk" class="q-pa-lg" style="border-left:1px solid var(--app-line);background:var(--app-surface);overflow-y:auto">
+      <div class="sec-title" style="font-size:18px">Seu período tomando forma</div>
+      <div class="lbl" style="margin-bottom:12px">Atualiza enquanto você cadastra.</div>
+      <q-card flat class="q-mb-md"><q-card-section class="stack" style="gap:4px">
+        <div class="font-display" style="font-weight:800;font-size:16px">{{ periodo.nome }}</div>
+        <div class="lbl tnum">{{ periodo.datas }}</div>
+      </q-card-section></q-card>
+      <div class="stack" style="gap:8px">
+        <div class="row-money"><span class="text-muted">Entradas por período</span><span class="amount-in">{{ brl(renda) }}</span></div>
+        <div class="row-money"><span class="text-muted">Sua parte das contas fixas</span><span>− {{ brl(minhasFixas) }}</span></div>
+        <div class="row-money"><span class="text-muted">Limites de cartão e débito/Pix</span><span>− {{ brl(limites) }}</span></div>
+        <q-separator />
+        <div class="row-money"><b>Sobra estimada por período</b><b :class="sobra >= 0 ? 'amount-in' : 'text-negative'">{{ brl(sobra) }}</b></div>
+        <div class="lbl">Vai para as metas: {{ o.metas.join(', ') || 'nenhuma escolhida ainda' }}.</div>
+        <q-separator />
+        <div class="row-money"><span class="text-muted">Saldo nas suas contas hoje</span><span>{{ brl(saldoPessoal) }}</span></div>
+        <div class="row-money"><span class="text-muted">Cartões</span><span>{{ o.cartoes.map(c => c.nome).join(', ') || '—' }}</span></div>
+        <div v-if="o.divide" class="row-money"><span class="text-muted">Dividindo com</span><span>{{ o.parceiro }} ({{ o.pct }}%)</span></div>
+      </div>
+      <div class="sec-title" style="font-size:16px;margin-top:20px">Conquistas</div>
       <div class="row" style="gap:4px;margin-top:8px">
-        <q-chip v-for="c in ['Ponto de partida','Toca do suricato','Vigia do cartão','Nada me escapa','Bando unido','Olhando o horizonte']" :key="c"
-          :icon="o.conquistas.includes(c) ? 'sym_r_emoji_events' : 'sym_r_lock'" :color="o.conquistas.includes(c) ? 'secondary' : undefined"
-          :text-color="o.conquistas.includes(c) ? 'white' : undefined" dense>{{ c }}</q-chip>
+        <q-chip v-for="c in CONQUISTAS" :key="c" dense :icon="o.conquistas.includes(c) ? 'sym_r_emoji_events' : 'sym_r_lock'"
+          :color="o.conquistas.includes(c) ? 'secondary' : undefined" :text-color="o.conquistas.includes(c) ? 'white' : undefined">{{ c }}</q-chip>
       </div>
     </aside>
   </div>`,
@@ -741,7 +884,7 @@ app.component('s-t15', {
 /* T16 · Configurações (RF04) */
 app.component('s-t16', {
   mixins: [modeProps],
-  methods: { refazer() { iniciarOnb(); go('T03'); } },
+  methods: { refazer(i) { iniciarOnb(i); go('T03'); } },
   template: `<div class="stack">
     <h2 class="sec-title">Configurações</h2>
     <q-tabs v-model="S.cfgTab" dense :align="desk ? 'left' : 'justify'" active-color="primary" indicator-color="primary" no-caps outside-arrows mobile-arrows>
@@ -764,12 +907,12 @@ app.component('s-t16', {
         <div class="suri-tip"><span v-html="suriSvg('vigia', 36)"></span><p>O período leva o nome do mês em que começa e mostra as datas completas: <b>{{ PERIODOS[1].nome }} · {{ PERIODOS[1].ini }} a {{ PERIODOS[1].fim }}</b>.</p></div>
       </q-card-section>
       <q-card-section v-else-if="S.cfgTab === 'onboarding'" class="stack">
-        <div class="lbl">Refaça qualquer etapa da conversa com o Suri.</div>
+        <div class="lbl">Refaça qualquer etapa do cadastro guiado pelo Suri.</div>
         <q-list separator>
           <q-item v-for="(e, i) in ETAPAS" :key="e">
             <q-item-section avatar><q-icon name="sym_r_check_circle" color="positive" /></q-item-section>
             <q-item-section>{{ i + 1 }}. {{ e }}</q-item-section>
-            <q-item-section side><q-btn flat dense no-caps color="primary" label="Refazer" @click="refazer" /></q-item-section>
+            <q-item-section side><q-btn flat dense no-caps color="primary" label="Refazer" @click="refazer(i)" /></q-item-section>
           </q-item>
         </q-list>
       </q-card-section>
