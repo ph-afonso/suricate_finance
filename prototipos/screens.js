@@ -56,8 +56,8 @@ app.component('s-t03', {
     saldoPessoal() { return this.pessoais.reduce((s, c) => s + (Number(c.saldo) || 0), 0); },
     renda() { return (Number(this.o.salario) || 0) + this.o.rendas.reduce((s, r) => s + (Number(r.valor) || 0), 0); },
     minhasFixas() {
-      const o = this.o;
-      return o.fixas.reduce((s, f) => s + (Number(f.valor) || 0) * (o.divide && f.dividir ? (100 - o.pct) / 100 : 1), 0);
+      const o = this.o, parte = x => (Number(x.valor) || 0) * (o.divide && x.dividir ? (100 - o.pct) / 100 : 1);
+      return o.fixas.reduce((s, f) => s + parte(f), 0) + o.parcelas.reduce((s, p) => s + parte(p), 0);
     },
     limites() { return (Number(this.o.limCartao) || 0) + (Number(this.o.limDebito) || 0); },
     sobra() { return this.renda - this.minhasFixas - this.limites; },
@@ -213,6 +213,22 @@ app.component('s-t03', {
               <q-checkbox :id="'t03-f-at' + i" v-model="f.naoAtrasar" dense label="Não pode atrasar" />
               <q-btn flat round dense icon="sym_r_delete" aria-label="Remover" @click="o.fixas.splice(i, 1)" />
             </div>
+            <div class="sec-title" style="font-size:16px">Parcelas e financiamentos em andamento</div>
+            <div class="lbl">Financiamentos, empréstimos e compras parceladas que ainda não acabaram. Eles também saem de cada período.</div>
+            <div v-for="(p, i) in o.parcelas" :key="'p' + i" class="onb-item">
+              <q-icon name="sym_r_event_repeat" color="primary" />
+              <div class="grow"><div>{{ p.desc }}</div><div class="lbl">faltam {{ p.restam }} parcelas</div></div>
+              <b class="tnum">{{ brl(Number(p.valor) || 0) }}</b>
+              <q-btn flat round dense icon="sym_r_delete" aria-label="Remover" @click="o.parcelas.splice(i, 1)" />
+            </div>
+            <div class="onb-add">
+              <div class="row q-col-gutter-sm">
+                <div :class="desk ? 'col-6' : 'col-12'"><q-input id="t03-p-desc" outlined dense v-model="o.novaParcela.desc" label="Descrição" placeholder="Ex.: Empréstimo" /></div>
+                <div :class="desk ? 'col-3' : 'col-7'"><q-input id="t03-p-val" outlined dense v-model.number="o.novaParcela.valor" type="number" label="Parcela" prefix="R$" /></div>
+                <div :class="desk ? 'col-3' : 'col-5'"><q-input id="t03-p-rest" outlined dense v-model.number="o.novaParcela.restam" type="number" label="Faltam" /></div>
+              </div>
+              <q-btn flat color="primary" icon="sym_r_add" no-caps label="Adicionar parcela" style="justify-self:start" @click="add('parcelas', 'novaParcela', { desc: '', valor: null, restam: null })" />
+            </div>
           </template>
 
           <template v-else-if="o.passo === 5">
@@ -231,9 +247,9 @@ app.component('s-t03', {
               <div class="row" style="gap:4px">
                 <q-chip v-for="c in o.cartoes.map(x => x.nome).concat(['Não temos'])" :key="c" dense clickable :color="o.cartaoFam === c ? 'secondary' : undefined" :text-color="o.cartaoFam === c ? 'white' : undefined" @click="o.cartaoFam = c">{{ c }}</q-chip>
               </div>
-              <div class="lbl">Contas fixas divididas</div>
+              <div class="lbl">Contas fixas e parcelas divididas</div>
               <div class="stack" style="gap:4px">
-                <q-checkbox v-for="(f, i) in o.fixas" :key="i" :id="'t03-div' + i" v-model="f.dividir" dense :label="f.desc + (f.valor ? ' · sua parte ' + brl(f.valor * (100 - o.pct) / 100) : '')" />
+                <q-checkbox v-for="(f, i) in o.fixas.concat(o.parcelas)" :key="i" :id="'t03-div' + i" v-model="f.dividir" dense :label="f.desc + (f.valor ? ' · sua parte ' + brl(f.valor * (100 - o.pct) / 100) : '')" />
               </div>
             </template>
           </template>
@@ -286,7 +302,7 @@ app.component('s-t03', {
       </q-card-section></q-card>
       <div class="stack" style="gap:8px">
         <div class="row-money"><span class="text-muted">Entradas por período</span><span class="amount-in">{{ brl(renda) }}</span></div>
-        <div class="row-money"><span class="text-muted">Sua parte das contas fixas</span><span>− {{ brl(minhasFixas) }}</span></div>
+        <div class="row-money"><span class="text-muted">Sua parte das contas fixas e parcelas</span><span>− {{ brl(minhasFixas) }}</span></div>
         <div class="row-money"><span class="text-muted">Limites de cartão e débito/Pix</span><span>− {{ brl(limites) }}</span></div>
         <q-separator />
         <div class="row-money"><b>Sobra estimada por período</b><b :class="sobra >= 0 ? 'amount-in' : 'text-negative'">{{ brl(sobra) }}</b></div>
@@ -418,7 +434,7 @@ app.component('s-t05', {
     <div :class="desk ? 'grid-3' : 'row'" :style="desk ? '' : 'gap:8px'">
       <q-card :class="desk ? '' : 'col'"><q-card-section><div class="lbl">Entradas</div><b class="tnum amount-in">{{ brl(entradas) }}</b></q-card-section></q-card>
       <q-card :class="desk ? '' : 'col'"><q-card-section><div class="lbl">Saídas</div><b class="tnum">{{ brl(saidas) }}</b></q-card-section></q-card>
-      <q-card v-if="desk"><q-card-section><div class="lbl">Resultado do período</div><b class="tnum" :class="entradas - saidas >= 0 ? 'amount-in' : 'text-negative'">{{ brl(entradas - saidas) }}</b></q-card-section></q-card>
+      <q-card v-if="desk"><q-card-section><div class="lbl">Entradas menos saídas</div><b class="tnum" :class="entradas - saidas >= 0 ? 'amount-in' : 'text-negative'">{{ brl(entradas - saidas) }}</b></q-card-section></q-card>
     </div>
     <div class="row" style="gap:4px">
       <q-chip v-for="f in [['todos','Todos'],['despesas','Despesas'],['receitas','Receitas'],['cartao','Cartão'],['pendentes','Pendentes']]" :key="f[0]" clickable
@@ -467,7 +483,7 @@ app.component('s-t06', {
   },
   template: `<div class="stack">
     <h3>Novo lançamento</h3>
-    <q-tabs v-model="n.tipo" dense align="justify" active-color="primary" indicator-color="primary" no-caps>
+    <q-tabs v-model="n.tipo" dense :align="desk ? 'justify' : 'left'" active-color="primary" indicator-color="primary" no-caps outside-arrows mobile-arrows>
       <q-tab name="despesa" label="Despesa" /><q-tab name="receita" label="Receita" /><q-tab name="cartao" label="Cartão" /><q-tab name="transf" label="Transferência" />
     </q-tabs>
     <q-input id="t06-valor" outlined v-model="n.valor" label="Valor" prefix="R$" input-class="tnum" input-style="font-size:22px;font-weight:700" />
@@ -579,6 +595,16 @@ app.component('s-t08', {
             <div class="row-money"><span class="text-muted">Compras deste período</span><span>{{ brl(novas) }}</span></div>
             <q-separator />
             <div class="row-money"><span class="text-muted">Fatura ideal para bater as metas</span><b>{{ brl(c.faturaAberta.ideal) }}</b></div>
+            <q-expansion-item dense dense-toggle label="Como a fatura ideal é calculada" header-class="text-primary" style="margin:0 -16px">
+              <div class="stack q-px-md q-pb-sm" style="gap:4px">
+                <div class="row-money lbl"><span>Entradas do período Novembro</span><span>{{ brl(8310) }}</span></div>
+                <div class="row-money lbl"><span>Sua parte das contas da casa</span><span>− {{ brl(2576.26) }}</span></div>
+                <div class="row-money lbl"><span>Outras contas fixas e parcelas</span><span>− {{ brl(3193.74) }}</span></div>
+                <div class="row-money lbl"><span>Débito e Pix planejados</span><span>− {{ brl(300) }}</span></div>
+                <div class="row-money lbl"><span>Reserva para as metas</span><span>− {{ brl(600) }}</span></div>
+                <div class="row-money"><b>Cabe na fatura</b><b>{{ brl(1640) }}</b></div>
+              </div>
+            </q-expansion-item>
             <div class="suri-tip"><span v-html="suriSvg('vigia', 36)"></span><p>Ainda cabem <b class="tnum">{{ brl(c.faturaAberta.ideal - c.faturaAberta.valor) }}</b> nesta fatura sem atrasar as metas.</p></div>
           </template>
         </q-card-section>

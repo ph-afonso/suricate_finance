@@ -106,6 +106,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .device .q-drawer { background: var(--app-surface); }
 .device .q-card { background: var(--app-surface); border: 1px solid var(--app-line); box-shadow: none; border-radius: 12px; }
 .device .q-tab { text-transform: none; }
+.sheet .q-tab { padding: 0 8px; min-width: 0; }
 .device .q-btn { text-transform: none; font-weight: 600; letter-spacing: 0; }
 .device .q-btn:not(.q-btn--round) { border-radius: 8px; }
 .device .text-muted { color: var(--app-muted); }
@@ -274,7 +275,7 @@ const CARTOES = [
     faturaCaixa: { venc: '24/10/2026', valor: 1081.51, status: 'A pagar' }, faturaAberta: { venc: '24/11/2026', fecha: '17/11/2026', valor: 1060, ideal: 1640 } },
   { id: 'leroy', nome: 'Leroy Pay', bandeira: 'Visa', fecha: 11, vence: 21, limite: 9257.5, usado: 762.49, gastoPeriodo: 0, limitePeriodo: null,
     faturaCaixa: { venc: '21/10/2026', valor: 102.49, status: 'A pagar' }, faturaAberta: { venc: '21/11/2026', fecha: '11/11/2026', valor: 82.5 } },
-  { id: 'inter', nome: 'Inter da família', bandeira: 'Mastercard', fecha: 13, vence: 20, limite: 8000, usado: 1240, gastoPeriodo: 0, limitePeriodo: null, familia: true,
+  { id: 'inter', nome: 'Inter da família', bandeira: 'Mastercard', fecha: 13, vence: 20, limite: 8000, usado: 1240, gastoPeriodo: 612.4, limitePeriodo: null, familia: true,
     faturaCaixa: { venc: '20/10/2026', valor: 466.58, status: 'Paga', suaParte: 233.29 }, faturaAberta: { venc: '20/11/2026', fecha: '13/11/2026', valor: 612.4 } },
 ];
 const CONTAS = [
@@ -392,6 +393,11 @@ function novoOnb() {
       { desc: 'Aluguel', dia: 22, valor: 2539.28, naoAtrasar: true, dividir: true },
       { desc: 'Condomínio', dia: 14, valor: 521.08, naoAtrasar: true, dividir: true },
     ],
+    parcelas: [
+      { desc: 'Financiamento do carro', valor: 1246.63, restam: 37, dividir: true },
+      { desc: 'Parcelas do cartão Nubank', valor: 640, restam: 6, dividir: false },
+    ],
+    novaParcela: { desc: '', valor: null, restam: null },
     divide: true, parceiro: 'Agatha', pct: 50, contaFam: 'Conta Familiar', cartaoFam: '',
     metas: ['Reserva de segurança', 'Quitar o carro'], limCartao: 1000, limDebito: 300,
   };
