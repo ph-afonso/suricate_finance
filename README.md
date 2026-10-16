@@ -22,11 +22,11 @@ Suricate Finance: app de finanças pessoais organizado por **períodos que come�
 | Ramo | Ambiente | Banco |
 | --- | --- | --- |
 | `main` | Produção | Banco de produção |
-| `release/*`, `hotfix/*` | Pré-produção | Cópia do banco de produção (ramo do Neon) |
+| `staging` (recebe cada `release/*` e `hotfix/*`) | Pré-produção | Cópia do banco de produção (ramo do Neon) |
 | `develop`, `feature/*` | Desenvolvimento | Banco de teste com dados fictícios |
 
 - Funcionalidade nova: `git flow feature start <nome>` a partir de `develop`; volta por pull request.
-- Nova versão: `git flow release start <versão>`, validação em pré-produção, depois `git flow release finish`, que leva a versão para `main` e `develop`.
+- Nova versão: `git flow release start <versão>`; o ramo da release é enviado também como `staging` para validação em pré-produção; depois `git flow release finish` leva a versão para `main` e `develop`. Detalhes em [M1 · documentação técnica](docs/modulos/m1-fundacao/tecnico.md#5-ambientes).
 - Correção urgente: `git flow hotfix start <nome>` a partir de `main`.
 
 A cópia de produção usada em pré-produção tem dados pessoais e segue as mesmas regras de acesso da produção.
