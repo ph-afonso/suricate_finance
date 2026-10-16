@@ -1,0 +1,45 @@
+# Roda as migrações (e, em desenvolvimento, o seed do usuário 1) num banco do Neon.
+# Cada ambiente do GitHub (development, staging, production) guarda o seu DATABASE_URL_DIRECT,
+# então ninguém precisa manusear as senhas do banco fora daqui.
+name: Migrações
+
+on:
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: Banco onde rodar as migrações
+        type: choice
+        options: [development, staging, production]
+        default: development
+  push:
+    branches: [develop, main]
+    paths: ['backend/migrations/**', 'backend/suricate/models/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migracoes-${{ inputs.ambiente || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  migrar:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ambiente || (github.ref_name == 'main' && 'production' || 'development') }}
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
+      APP_ENV: ${{ inputs.ambiente || (github.ref_name == 'main' && 'production' || 'development') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: pip install -r requirements-dev.txt
+      - name: Migrações
+        run: alembic upgrade head
+      - name: Seed do usuário 1 (só em development)
+        if: env.APP_ENV == 'development'
+        run: python -m suricate.seed

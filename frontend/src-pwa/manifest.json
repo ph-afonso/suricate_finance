@@ -1,0 +1,18 @@
+{
+  "name": "Suricate Finance",
+  "short_name": "Suricate",
+  "description": "Suas finanças no ritmo do seu salário",
+  "lang": "pt-BR",
+  "orientation": "portrait",
+  "display": "standalone",
+  "start_url": "/",
+  "background_color": "#FBF7F2",
+  "theme_color": "#A85A2A",
+  "icons": [
+    { "src": "icons/icon-128x128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-256x256.png", "sizes": "256x256", "type": "image/png" },
+    { "src": "icons/icon-384x384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

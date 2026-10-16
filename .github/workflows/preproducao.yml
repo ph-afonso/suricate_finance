@@ -1,0 +1,36 @@
+# Pré-produção (issue #114, seção 5 da documentação técnica do M1).
+# Quando o ramo staging recebe uma release, recria o banco de pré-produção a partir da produção
+# (cópia instantânea do Neon) e roda as migrações da release.
+name: Pré-produção
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preproducao
+  cancel-in-progress: false
+
+jobs:
+  banco:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recriar o ramo staging do Neon a partir de main
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+        run: npx --yes neonctl@2 branches reset staging --parent --project-id "${{ secrets.NEON_PROJECT_ID }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: pip install -r backend/requirements-dev.txt
+      - name: Migrações no banco de pré-produção
+        working-directory: backend
+        env:
+          DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
+        run: alembic upgrade head

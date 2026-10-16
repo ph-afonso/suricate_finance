@@ -62,7 +62,7 @@ suricate_finance/
 ├── docs/
 ├── .github/workflows/        # etapas.yml (já existe) e testes.yml (novo)
 ├── requirements.txt          # dependências da API, lidas pela Vercel
-├── .python-version           # 3.12
+├── .python-version           # 3.13
 └── vercel.json
 ```
 
@@ -74,7 +74,7 @@ O arquivo `api/index.py` é o único `.py` dentro de `api/`, porque a Vercel tra
 | --- | --- | --- |
 | Front | Quasar com `@quasar/app-vite`, Vue 3, Pinia, Vue Router | Quasar 2.16.x, Vue 3.4.x |
 | Ícones e fontes | Material Symbols Rounded, Nunito e Inter | Google Fonts |
-| API | Python, FastAPI, Pydantic, pydantic-settings | Python 3.12, FastAPI 0.115.x |
+| API | Python, FastAPI, Pydantic, pydantic-settings | Python 3.13, FastAPI 0.119.x |
 | Banco | Postgres no Neon, SQLAlchemy 2, Alembic, psycopg 3 | Postgres 16 |
 | Testes | pytest, Vitest + Vue Test Utils, Playwright | — |
 | Qualidade | Ruff (Python), ESLint + Prettier (front) | — |

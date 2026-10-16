@@ -17,6 +17,39 @@ Suricate Finance: app de finanças pessoais organizado por **períodos que come�
 | Banco | Postgres no Neon |
 | Hospedagem | Vercel |
 
+## Desenvolvimento local
+
+Precisa de Node 22 e Python 3.13. Os testes locais da API usam SQLite; o Postgres de verdade roda na pipeline e no Neon.
+
+```bash
+# API (porta 8000)
+cd backend
+py -3.13 -m venv .venv
+.venv/Scripts/pip install -r requirements-dev.txt     # no Linux/macOS: .venv/bin/pip
+cp .env.example .env
+.venv/Scripts/alembic upgrade head
+.venv/Scripts/uvicorn suricate.main:app --port 8000
+
+# App (outro terminal; o /api é repassado para a porta 8000)
+cd frontend
+npm install
+npm run dev
+
+# Testes
+cd backend && .venv/Scripts/pytest                     # API
+cd frontend && npm run lint && npm test                # front
+cd e2e && npm install && npx playwright install chromium
+E2E_BASE_URL=http://localhost:9000 npx playwright test  # ponta a ponta
+```
+
+| Pasta | Conteúdo |
+| --- | --- |
+| `frontend/` | App Quasar (PWA) |
+| `backend/` | API FastAPI, modelos, migrações (Alembic) e testes |
+| `api/index.py` | Entrada da API na Vercel |
+| `e2e/` | Testes de ponta a ponta (Playwright) |
+| `CHANGELOG.md` | Novidades, exibidas na página Novidades do app |
+
 ## Fluxo de trabalho (Git Flow)
 
 | Ramo | Ambiente | Banco |
