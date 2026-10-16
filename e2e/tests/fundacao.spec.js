@@ -37,6 +37,11 @@ test('a página de status lista os ambientes monitorados', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Status do sistema' })).toBeVisible()
   await expect(page.getByTestId('resumo')).toBeVisible()
   await expect(page.getByTestId('ambiente').first()).toBeVisible()
+  // A grade dos ambientes tem a altura dos cartões, sem espaço sobrando embaixo (defeito de 16/10)
+  const grade = await page.locator('.sf-grade').boundingBox()
+  const cartao = await page.getByTestId('ambiente').first().boundingBox()
+  expect(grade.height).toBeLessThan(cartao.height * 4)
+  if (grade.width >= 600) expect(grade.height).toBeLessThan(cartao.height + 2)
 })
 
 test('um endereço que não existe mostra a página do Suri', async ({ page }) => {

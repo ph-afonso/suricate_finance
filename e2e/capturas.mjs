@@ -1,5 +1,7 @@
 // Capturas de tela para relatórios e docs de uso, no celular (360 px) e no desktop (1440 px).
-// Uso: E2E_BASE_URL=http://localhost:9001 node capturas.mjs <pasta-de-saída> /rota:nome [/rota:nome ...]
+// Uso: E2E_BASE_URL=http://localhost:9001 node capturas.mjs <pasta-de-saída> /rota:nome[:clique>clique] ...
+// Os cliques opcionais são nomes de botões ou textos visíveis, em ordem (ex.: /:menu-mais:Mais).
+// Um clique com prefixo "celular=" ou "desktop=" só acontece naquela tela.
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium } from '@playwright/test'
@@ -26,8 +28,17 @@ for (const [tela, opcoes] of Object.entries(telas)) {
   })
   const pagina = await contexto.newPage()
   for (const item of paginas) {
-    const [rota, nome] = item.split(':')
+    const [rota, nome, cliques = ''] = item.split(':')
     await pagina.goto(base + rota, { waitUntil: 'networkidle' })
+    for (let alvo of cliques.split('>').filter(Boolean)) {
+      const [so, resto] = alvo.split('=')
+      if (resto !== undefined) {
+        if (so !== tela) continue
+        alvo = resto
+      }
+      await pagina.getByRole('button', { name: alvo }).or(pagina.getByText(alvo, { exact: true })).first().click()
+      await pagina.waitForTimeout(400)
+    }
     await pagina.waitForTimeout(500)
     const arquivo = join(saida, `${nome}-${tela}.png`)
     await pagina.screenshot({ path: arquivo, fullPage: tela === 'desktop' })

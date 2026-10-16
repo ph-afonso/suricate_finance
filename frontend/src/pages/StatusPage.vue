@@ -32,7 +32,7 @@ const pipeline = computed(() => {
 
 <template>
   <q-page padding>
-    <div class="column q-gutter-md" style="max-width: 960px; margin: 0 auto">
+    <div class="column no-wrap q-gutter-md" style="max-width: 960px; margin: 0 auto">
       <div class="row items-center">
         <h1 style="font-size: 24px">Status do sistema</h1>
         <q-space />
