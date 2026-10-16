@@ -32,5 +32,5 @@ jobs:
       - name: Migrações no banco de pré-produção
         working-directory: backend
         env:
-          DATABASE_URL_DIRECT: ${{ secrets.STAGING_DATABASE_URL_DIRECT }}
+          DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
         run: alembic upgrade head
