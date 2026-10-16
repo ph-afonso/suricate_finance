@@ -72,6 +72,7 @@ O evento de deploy da Vercel traz só o commit, não o ramo. A pipeline pergunta
 | P3 | Status: "Sem acesso aos deploys da Vercel" | Faltavam `VERCEL_API_TOKEN` e `VERCEL_PROJECT_ID`; `STATUS_AMBIENTES` só existia em Production | Variáveis criadas em Production e Preview (16/10) |
 | P4 | 1ª string de conexão salva no GitHub não era uma URL | O valor colado veio com outro formato | Recolada pelo *Copy snippet* do Neon; a Action *Migrações* confirmou |
 | P5 | `verificar-pwa.mjs` não achava o build no Windows | Caminho com espaço ("Phelipe Afonso") virava `%20` | Uso de `fileURLToPath` |
+| P6 | Status: espaço vazio grande entre os cartões e "Últimos deploys" no desktop (achado na etapa 4, #10) | O contêiner `.column` do Quasar quebra linha e esticava a grade até a altura da tela; só aparecia com 3 ambientes | `no-wrap` nas páginas Status, Início e Novidades; o e2e da página de status passou a conferir a altura da grade |
 
 ### Pontos conhecidos (não são defeitos)
 
