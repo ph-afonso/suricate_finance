@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from suricate.config import Settings
 from suricate.models import OnboardingProgresso, Sessao, TentativaAcesso, Usuario
 from suricate.models.base import agora
-from suricate.seguranca import COOKIE_SESSAO, DIAS_SESSAO, novo_token
+from suricate.seguranca import COOKIE_SESSAO, DIAS_SESSAO, TERMOS_VERSAO, novo_token
 
 JANELA = timedelta(minutes=15)
 MAX_ERROS_EMAIL = 5
@@ -86,7 +86,7 @@ def resumo(db: Session, usuario: Usuario) -> dict:
         "papel": usuario.papel,
         "tem_senha": bool(usuario.senha_hash),
         "tem_google": bool(usuario.google_sub),
-        "termos_versao": usuario.termos_versao,
+        "termos_pendentes": usuario.termos_versao != TERMOS_VERSAO,
         "onboarding": {
             "etapa_atual": progresso.etapa_atual if progresso else 0,
             "concluido": bool(progresso and progresso.concluido_em),

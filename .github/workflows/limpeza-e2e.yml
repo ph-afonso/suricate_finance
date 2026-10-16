@@ -1,0 +1,29 @@
+# Apaga uma vez por dia as contas que os testes de ponta a ponta criam no banco dev
+# (seção 10 da documentação técnica do M2).
+name: Limpeza das contas de teste
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # 3h em Brasília
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  limpar:
+    runs-on: ubuntu-latest
+    environment: development
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      APP_ENV: development
+      DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - run: pip install -r ../requirements.txt
+      - run: python -m suricate.limpeza_e2e

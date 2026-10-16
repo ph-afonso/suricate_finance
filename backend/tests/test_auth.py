@@ -148,6 +148,7 @@ def test_ct24_google_cria_conta_e_pede_os_termos(api, monkeypatch):
     assert r.status_code == 303 and r.headers["location"].endswith("/boas-vindas")
     eu = c.get("/api/auth/eu").json()
     assert eu["email"] == "nova@gmail.com" and eu["tem_google"] and not eu["tem_senha"]
+    assert eu["termos_pendentes"]
     assert c.get("/api/onboarding").status_code == 403  # termos ainda não aceitos
     assert c.post("/api/auth/termos").status_code == 200
     assert c.get("/api/onboarding").status_code == 200

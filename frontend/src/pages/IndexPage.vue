@@ -1,8 +1,10 @@
-<!-- Página inicial do M1 (CT06): prova que front, API e banco estão ligados neste ambiente -->
+<!-- Página inicial (CT06): saudação, convite para continuar o cadastro guiado (RF04) e a saúde do sistema.
+     A tela do período (T04) chega no M3. -->
 <script setup>
 import { computed, onMounted } from 'vue'
 import SuriMascote from 'components/SuriMascote.vue'
 import { useApi } from 'src/composables/useApi'
+import { useSessao } from 'src/composables/useSessao'
 
 const { dados, erro, carregando, carregar } = useApi('health')
 onMounted(carregar)
@@ -15,6 +17,10 @@ const NOMES = {
 }
 const tudoOk = computed(() => dados.value?.status === 'ok')
 const versaoFront = process.env.APP_VERSION
+
+const { usuario } = useSessao()
+const nome = computed(() => usuario.value?.apelido || usuario.value?.nome?.split(' ')[0])
+const cadastro = computed(() => usuario.value?.onboarding)
 </script>
 
 <template>
@@ -23,13 +29,37 @@ const versaoFront = process.env.APP_VERSION
       <div class="sf-dica">
         <SuriMascote :expressao="tudoOk ? 'feliz' : erro || dados ? 'preocupado' : 'vigia'" :tamanho="56" />
         <div>
-          <h1 style="font-size: 22px">Suricate Finance</h1>
+          <h1 style="font-size: 22px">{{ nome ? `Oi, ${nome}!` : 'Suricate Finance' }}</h1>
           <p class="q-mb-none q-mt-xs">
-            A fundação está de pé. As telas do seu período chegam nos próximos módulos; por enquanto, eu fico
-            de vigia no sistema.
+            A tela do seu período chega no próximo módulo. Por enquanto, eu fico de vigia no sistema e guardo
+            tudo o que você cadastrou.
           </p>
         </div>
       </div>
+
+      <q-card v-if="cadastro && !cadastro.concluido" class="sf-card" data-testid="continuar-cadastro">
+        <q-card-section class="row items-center no-wrap" style="gap: 12px">
+          <q-circular-progress
+            :value="(cadastro.etapa_atual / 7) * 100"
+            size="48px"
+            :thickness="0.18"
+            color="primary"
+            track-color="grey-3"
+            show-value
+            class="sf-num"
+            >{{ cadastro.etapa_atual }}/7</q-circular-progress
+          >
+          <div class="col">
+            <div class="sf-titulo" style="font-size: 16px">
+              Continue seu cadastro ({{ cadastro.etapa_atual }} de 7)
+            </div>
+            <div class="sf-muted" style="font-size: 13px">
+              Faltam poucas etapas para o seu primeiro período.
+            </div>
+          </div>
+          <q-btn unelevated color="primary" label="Continuar" to="/cadastro-guiado" />
+        </q-card-section>
+      </q-card>
 
       <q-card class="sf-card" data-testid="saude">
         <q-card-section class="row items-center">

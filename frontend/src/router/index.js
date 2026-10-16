@@ -1,11 +1,14 @@
 import { defineRouter } from '#q-app/wrappers'
 import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
 import routes from './routes'
+import { instalarGuardas } from './guardas'
 
-export default defineRouter(() =>
-  createRouter({
+export default defineRouter(() => {
+  const router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
     routes,
     history: process.env.SERVER ? createMemoryHistory() : createWebHistory(process.env.VUE_ROUTER_BASE),
-  }),
-)
+  })
+  instalarGuardas(router)
+  return router
+})
