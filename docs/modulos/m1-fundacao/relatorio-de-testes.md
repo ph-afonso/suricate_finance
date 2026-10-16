@@ -108,6 +108,6 @@ Na máquina local, a página de status monitora só a própria API e não tem to
 
 Para gerar de novo: `cd e2e && E2E_BASE_URL=http://localhost:9001 node capturas.mjs ../docs/modulos/m1-fundacao/img /:inicio /status:status`
 
-## 7. Proposta para depois do merge
+## 7. Verificações obrigatórias no `main`
 
-A documentação técnica (seção 10) prevê transformar a pipeline em verificação obrigatória no `main` quando ela estiver estável. Proposta: exigir os jobs **api** e **front** no ruleset "Proteger main". O **e2e** roda depois do deploy, não no PR, então fica de fora. Só faço essa mudança com o seu ok.
+A documentação técnica (seção 10) prevê transformar a pipeline em verificação obrigatória quando ela estiver estável. Em 16/10, com o ok do Phelipe, o ruleset "Proteger main" passou a exigir os jobs **api** e **front** antes de qualquer merge no `main`. O **e2e** fica de fora porque roda depois do deploy, não no PR. As outras regras continuam iguais: PR obrigatório, sem exclusão do ramo e sem force push.
