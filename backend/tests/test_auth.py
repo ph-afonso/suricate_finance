@@ -240,3 +240,62 @@ def test_admin_pelo_email(api):
     email_ = novo_email()
     assert cadastrar(api(admin_emails=f"outro@x.com, {email_.upper()}"), email_)["papel"] == "admin"
     assert cadastrar(api(admin_emails=email_))["papel"] == "usuario"
+
+
+class SMTPFalso:
+    """Servidor de e-mail simulado: guarda o login e pode cair na autenticação, como o Gmail fez."""
+
+    logins: list = []
+    cair = False
+
+    def __init__(self, host, porta, timeout):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def starttls(self):
+        pass
+
+    def login(self, usuario, senha):
+        SMTPFalso.logins.append((usuario, senha))
+        if SMTPFalso.cair:
+            import smtplib
+
+            raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
+
+    def send_message(self, msg):
+        pass
+
+
+SMTP = {
+    "smtp_host": "smtp.gmail.com",
+    "smtp_usuario": " suri@gmail.com ",
+    "smtp_senha": "abcd efgh ijkl mnop",
+}
+
+
+def test_ct25_senha_de_app_vai_sem_espacos(api, monkeypatch):
+    import smtplib
+
+    monkeypatch.setattr(smtplib, "SMTP", SMTPFalso)
+    SMTPFalso.logins, SMTPFalso.cair = [], False
+    email_ = novo_email()
+    cadastrar(api(), email_)
+    assert api(**SMTP).post("/api/auth/senha/esqueci", json={"email": email_}).status_code == 202
+    assert SMTPFalso.logins == [("suri@gmail.com", "abcdefghijklmnop")]
+
+
+def test_ct25_falha_do_servidor_de_email_vira_aviso(api, monkeypatch):
+    import smtplib
+
+    monkeypatch.setattr(smtplib, "SMTP", SMTPFalso)
+    SMTPFalso.logins, SMTPFalso.cair = [], True
+    email_ = novo_email()
+    cadastrar(api(), email_)
+    r = api(**SMTP).post("/api/auth/senha/esqueci", json={"email": email_})
+    assert r.status_code == 503
+    assert "Não consegui enviar o e-mail" in r.json()["detail"]

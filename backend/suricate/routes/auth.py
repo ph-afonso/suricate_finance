@@ -127,15 +127,23 @@ def esqueci(dados: EmailApenas, db: Banco, settings: Config) -> dict:
         )
         db.commit()
         link = f"{settings.app_url.rstrip('/')}/redefinir-senha?token={token}"
-        email.enviar(
-            settings,
-            usuario.email,
-            "Redefinir sua senha do Suricate",
-            f"Oi, {usuario.apelido or usuario.nome}!\n\n"
-            f"Para criar uma senha nova, abra o link abaixo. Ele vale por 1 hora e funciona uma vez só.\n\n"
-            f"{link}\n\n"
-            "Se não foi você que pediu, pode ignorar este e-mail: sua senha continua a mesma.\n\nSuri",
-        )
+        try:
+            email.enviar(
+                settings,
+                usuario.email,
+                "Redefinir sua senha do Suricate",
+                f"Oi, {usuario.apelido or usuario.nome}!\n\n"
+                "Para criar uma senha nova, abra o link abaixo. "
+                "Ele vale por 1 hora e funciona uma vez só.\n\n"
+                f"{link}\n\n"
+                "Se não foi você que pediu, pode ignorar este e-mail: sua senha continua a mesma.\n\nSuri",
+            )
+        except email.ErroEnvio as erro:
+            db.rollback()
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                "Não consegui enviar o e-mail agora. Tente de novo em alguns minutos.",
+            ) from erro
     return {"mensagem": "Se o e-mail tiver uma conta, enviamos um link para criar uma senha nova."}
 
 
