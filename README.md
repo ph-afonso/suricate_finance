@@ -5,6 +5,8 @@ Suricate Finance: app de finanças pessoais organizado por **períodos que come�
 ## Documentação
 
 - [Análise e Requisitos](https://claude.ai/code/artifact/383dc308-00c9-4c01-9659-85308904fd79): análise do Mobills, regras de negócio (RN01–RN31), requisitos (RF01–RF45), onboarding e fases.
+- [Processo de trabalho](docs/processo.md): milestones, as 4 etapas de cada módulo e como aprovar uma entrega.
+- [Quadro do projeto](https://github.com/users/ph-afonso/projects/2)
 
 ## Tecnologia (aprovada na revisão 2)
 
