@@ -33,7 +33,7 @@ O app tem 5 destinos principais. No celular eles ficam numa barra inferior; no d
 | --- | --- | --- | --- | --- | --- |
 | T01 | Boas-vindas e login | RF01, RF02 | Suri de vigia, "Entrar com Google", e-mail e senha, link para cadastro | Tela cheia | Cartão central sobre fundo ilustrado |
 | T02 | Cadastro | RF01 | Nome, e-mail, senha, aceite dos termos (LGPD) | Tela cheia | Cartão central |
-| T03 | Onboarding do Suri | RF03, RF04 | Conversa em formato de chat, 7 etapas, barra de progresso, conquistas; ao final, o resumo do primeiro período | Chat em tela cheia, botões de resposta no rodapé | Chat no centro, painel à direita com o que o Suri já anotou |
+| T03 | Onboarding do Suri | RF03, RF04 | Cadastro guiado em 7 etapas, cada uma uma tela com formulário: o usuário já cadastra renda, contas, cartões, contas fixas, família e metas, que aparecem como itens na tela. O Suri dá a dica de cada etapa; barra de progresso e conquistas | Uma etapa por tela, com "Continuar" no rodapé | Etapas à esquerda, formulário no centro e, à direita, a prévia do período, que se atualiza enquanto o usuário cadastra |
 | T04 | Painel do período | RF23, RF31, RF32, RF07 | Disponível do período; cartão (gasto no período × limite, fatura ideal); débito/Pix × limite; próximas contas, com selo "não pode atrasar"; família (comprometido, a receber); dica do Suri | Cartões empilhados | Grade de 3 colunas com a dica do Suri fixa à direita |
 | T05 | Lançamentos do período | RF09, RF07 | Lista agrupada por dia, filtros (tipo, conta, cartão, categoria, situação), totais do período | Lista com filtros em chips | Tabela com filtros na lateral |
 | T06 | Novo lançamento | RF09, RF10, RF11, RF14, RF16, RF36 | Abas despesa/receita/cartão/transferência; valor, data, descrição, categoria, conta ou cartão, parcelas, "dividir com a família", "não pode atrasar". No cartão, o aviso "Cai na fatura de 24/11, paga no período Novembro" | Folha que sobe de baixo | Diálogo central |
@@ -50,15 +50,17 @@ O app tem 5 destinos principais. No celular eles ficam numa barra inferior; no d
 
 Ficam fora do M0 (são Fase 2 e Fase 3): metas, alertas, importação, relatórios, calendário, membro da família e assinatura. Na Fase 2, a documentação e os protótipos serão complementados com essas telas (decisão da revisão do PR #95).
 
+**Decisão da revisão do PR #97:** o onboarding deixa de ser uma conversa em chat e vira um cadastro guiado em telas, onde o usuário já cadastra contas, cartões e contas fixas.
+
 **Decisões da revisão do PR #95:** cores e fontes aprovadas; barra inferior com 5 destinos aprovada, com Família e Planejamento dentro de "Mais" no celular; metas fora do M0.
 
 ## 4. Fluxos principais
 
 **F1 · Primeiro acesso (RF01–RF05)**
 1. T01 → "Entrar com Google".
-2. T03, etapa 1: o Suri se apresenta e pergunta como chamar o usuário e o objetivo principal (botões + "Outros").
-3. Etapa 2 (renda): campos "Dia" e "Valor médio"; botões para fim de semana (antecipa, adia, não muda, não sei); "Quantos dias atrasa?" só aparece se o usuário disser que atrasa; outras entradas em campos com "Adicionar outra".
-4. Etapas 3 a 7: contas, cartões, contas fixas, família e objetivos, cada uma com sua conquista.
+2. T03, etapa 1: o Suri se apresenta; o usuário informa como quer ser chamado e escolhe o objetivo principal (opções + "Outros").
+3. Etapa 2 (renda): campos "Dia" e "Valor médio"; opções para fim de semana (antecipa, adia, não muda, não sei); "Quantos dias atrasa?" só aparece se o usuário marcar que atrasa; outras entradas cadastradas na própria tela, com "Adicionar entrada".
+4. Etapas 3 a 7: contas, cartões, contas fixas, família e objetivos, cadastrados na própria tela. Cada etapa concluída rende uma conquista, e no desktop a prévia do período (entradas, contas fixas, limites e sobra estimada) se atualiza a cada item.
 5. Fechamento: o Suri mostra o período "Outubro · 15/10/2026 a 14/11/2026", o disponível e o próximo vencimento → T04.
 
 **F2 · Lançar uma compra no cartão (RF14, RF16)**
@@ -129,7 +131,7 @@ O texto branco sobre `primary` e `secondary` passa no contraste AA (cerca de 5:1
 | `QPageSticky` + `QFab` | Botão "+" de novo lançamento |
 | `QCard`, `QCardSection` | Cartões do painel, contas e cartões de crédito |
 | `QLinearProgress`, `QCircularProgress` | Uso do limite, progresso do onboarding |
-| `QChatMessage` + `QBtn` | Conversa do Suri no onboarding |
+| `QItem`, `QChip`, `QInput` | Listas e formulários do cadastro guiado (onboarding) |
 | `QList`, `QItem`, `QItemLabel` | Listas de lançamentos, contas e categorias |
 | `QTable` | Listas no desktop (T05, T08, T13, T14) |
 | `QBtnToggle` | Visão "gasto" / "caixa" do cartão |
