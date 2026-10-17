@@ -2,6 +2,7 @@
 
 import re
 
+import httpx
 import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -322,3 +323,46 @@ def test_ct25_se_a_587_cair_tenta_a_465(api, monkeypatch):
     cadastrar(api(), email_)
     assert api(**SMTP).post("/api/auth/senha/esqueci", json={"email": email_}).status_code == 202
     assert SMTPFalso.logins == [587, 465]
+
+
+def test_ct25_envio_pela_api_do_gmail(api, monkeypatch):
+    import base64
+    import email as pacote_email
+
+    from suricate.services import email as servico
+
+    chamadas = []
+
+    def post_falso(url, **kwargs):
+        chamadas.append((url, kwargs))
+        pedido = httpx.Request("POST", url)
+        if url.endswith("/token"):
+            assert kwargs["data"]["refresh_token"] == "autorizacao-teste"
+            return httpx.Response(200, json={"access_token": "acesso"}, request=pedido)
+        return httpx.Response(200, json={"id": "1"}, request=pedido)
+
+    monkeypatch.setattr(servico.httpx, "post", post_falso)
+    email_ = novo_email()
+    cadastrar(api(), email_)
+    c = api(**GOOGLE, gmail_refresh_token="autorizacao-teste", email_remetente="suri@gmail.com")
+    assert c.post("/api/auth/senha/esqueci", json={"email": email_}).status_code == 202
+    url, kwargs = chamadas[-1]
+    assert url == "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
+    assert kwargs["headers"]["Authorization"] == "Bearer acesso"
+    mensagem = pacote_email.message_from_bytes(base64.urlsafe_b64decode(kwargs["json"]["raw"]))
+    assert mensagem["To"] == email_ and "suri@gmail.com" in mensagem["From"]
+    assert "redefinir-senha?token=" in mensagem.get_payload(decode=True).decode()
+
+
+def test_ct25_autorizacao_do_gmail_revogada_vira_aviso(api, monkeypatch):
+    from suricate.services import email as servico
+
+    def post_falso(url, **kwargs):
+        pedido = httpx.Request("POST", url)
+        return httpx.Response(400, json={"error": "invalid_grant"}, request=pedido)
+
+    monkeypatch.setattr(servico.httpx, "post", post_falso)
+    email_ = novo_email()
+    cadastrar(api(), email_)
+    c = api(**GOOGLE, gmail_refresh_token="vencida")
+    assert c.post("/api/auth/senha/esqueci", json={"email": email_}).status_code == 503
