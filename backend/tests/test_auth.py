@@ -293,9 +293,32 @@ def test_ct25_falha_do_servidor_de_email_vira_aviso(api, monkeypatch):
     import smtplib
 
     monkeypatch.setattr(smtplib, "SMTP", SMTPFalso)
+    monkeypatch.setattr(smtplib, "SMTP_SSL", SMTPFalso)
     SMTPFalso.logins, SMTPFalso.cair = [], True
     email_ = novo_email()
     cadastrar(api(), email_)
     r = api(**SMTP).post("/api/auth/senha/esqueci", json={"email": email_})
     assert r.status_code == 503
     assert "Não consegui enviar o e-mail" in r.json()["detail"]
+    assert len(SMTPFalso.logins) == 2  # tentou a 587 e depois a 465
+
+
+def test_ct25_se_a_587_cair_tenta_a_465(api, monkeypatch):
+    import smtplib
+
+    class SoA465(SMTPFalso):
+        def __init__(self, host, porta, timeout):
+            self.porta = porta
+
+        def login(self, usuario, senha):
+            SMTPFalso.logins.append(self.porta)
+            if self.porta == 587:
+                raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
+
+    monkeypatch.setattr(smtplib, "SMTP", SoA465)
+    monkeypatch.setattr(smtplib, "SMTP_SSL", SoA465)
+    SMTPFalso.logins = []
+    email_ = novo_email()
+    cadastrar(api(), email_)
+    assert api(**SMTP).post("/api/auth/senha/esqueci", json={"email": email_}).status_code == 202
+    assert SMTPFalso.logins == [587, 465]
