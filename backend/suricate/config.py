@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     smtp_senha: str | None = None
     email_remetente: str | None = None
     github_sugestoes_token: str | None = None
+    # Envio pela API do Gmail (OAuth): autorização da conta do Suricate, gerada por
+    # scripts/autorizar_gmail.py. Usa o mesmo cliente OAuth do login com Google.
+    gmail_refresh_token: str | None = None
 
     @property
     def ambientes_monitorados(self) -> list[tuple[str, str]]:

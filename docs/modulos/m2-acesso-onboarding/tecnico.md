@@ -24,6 +24,8 @@ Referências: [Análise e Requisitos](https://claude.ai/code/artifact/383dc308-0
 | D3 | "Excluir minha conta" entra no M2? | **Sim**, em Configurações, com confirmação. É o mínimo da LGPD para quem testar | Deixar para a Fase 2, junto com exportar os dados |
 | D4 | Login com Google nos previews de `feature/*` | **Só nos endereços fixos:** produção, pré-produção, `develop` e a máquina local. O Google exige cadastrar cada endereço, e o de cada preview muda. Nos previews de `feature/*` funciona o e-mail e senha | Domínio próprio com subdomínios fixos por ramo (custo do domínio) |
 
+**Atualização de D2 (16/10, depois do desenvolvimento):** o Google bloqueia o login por senha de app (SMTP) quando ele sai dos servidores da Vercel, nas portas 587 e 465, embora funcione da máquina local. O envio passou a usar a **API do Gmail com OAuth** (`GMAIL_REFRESH_TOKEN`, gerado por `backend/scripts/autorizar_gmail.py`), pelo mesmo cliente OAuth do login com Google. O SMTP ficou como reserva.
+
 As seções abaixo já seguem as recomendações. Se alguma mudar na revisão, eu ajusto antes do desenvolvimento.
 
 ## 3. Arquitetura do acesso
@@ -165,6 +167,7 @@ Segue o desenho aprovado na seção 16 do M1, com estes detalhes:
 | --- | --- | --- |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Vercel (Production e Preview) | 🧑 no Google Cloud, com o Claude guiando tela por tela |
 | `SMTP_HOST`, `SMTP_USUARIO`, `SMTP_SENHA`, `EMAIL_REMETENTE` | Vercel | 🧑 (senha de app do Gmail, D2) |
+| `GMAIL_REFRESH_TOKEN` | Vercel | 🧑 (autorização da conta do Suricate pela API do Gmail; atualização de D2) |
 | `GITHUB_SUGESTOES_TOKEN` | Vercel | 🧑 no GitHub, com o Claude guiando |
 | `ADMIN_EMAILS` | Vercel | 🤖 (seu e-mail) |
 | `APP_URL` | Vercel, por ambiente | 🤖 (para montar os links dos e-mails e o retorno do Google) |
