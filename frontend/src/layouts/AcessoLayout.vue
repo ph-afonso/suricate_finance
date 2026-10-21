@@ -29,6 +29,10 @@
 .sf-acesso-form {
   display: grid;
   gap: 14px;
+  // links de texto (termos, privacidade) na cor do guia visual, não no azul do navegador
+  a:not(.q-btn) {
+    color: var(--q-primary);
+  }
 }
 .sf-acesso-topo {
   text-align: center;

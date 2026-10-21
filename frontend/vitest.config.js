@@ -20,5 +20,7 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['tests/**/*.test.js'],
     css: false,
+    // A primeira montagem compila o Quasar inteiro e passa dos 5 s padrão em máquinas mais lentas
+    testTimeout: 20_000,
   },
 })

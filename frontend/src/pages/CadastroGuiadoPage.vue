@@ -186,7 +186,7 @@ const extras = computed(() => {
               <SuriMascote :tamanho="28" />
               <b class="sf-titulo" style="font-size: 18px">Suricate</b>
             </router-link>
-            <q-list>
+            <q-list role="list" aria-label="Etapas do cadastro guiado">
               <q-item
                 v-for="(e, i) in etapas"
                 :key="e.chave"
