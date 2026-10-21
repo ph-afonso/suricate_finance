@@ -14,3 +14,4 @@ Formato: um título `## <versão> · <dd/mm/aaaa>` por versão, da mais nova par
 - Parou no meio? O cadastro continua de onde você saiu, e qualquer etapa pode ser refeita em Configurações.
 - Aba Sugestões: conte sua ideia ou o problema que achou e acompanhe o andamento.
 - Em Configurações, você edita seu perfil, sai da conta ou exclui a conta e todos os seus dados.
+- Mais fácil de usar pelo teclado e com leitor de tela: o foco aparece com um contorno, o zoom do celular funciona e as etapas do cadastro guiado são anunciadas como lista.

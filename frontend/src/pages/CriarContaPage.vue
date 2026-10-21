@@ -68,10 +68,16 @@ async function enviar() {
         :rules="[(v) => (v && v.length >= 8) || 'Use pelo menos 8 caracteres']"
         lazy-rules
       />
-      <q-checkbox v-model="termos" dense>
-        Li e aceito os <router-link to="/termos" target="_blank">termos de uso</router-link> e a
-        <router-link to="/privacidade" target="_blank">política de privacidade</router-link> (LGPD)
-      </q-checkbox>
+      <!-- Os links ficam fora do rótulo: um link dentro do checkbox é um controle dentro de outro (RNF07) -->
+      <q-checkbox
+        v-model="termos"
+        dense
+        label="Li e aceito os termos de uso e a política de privacidade (LGPD)"
+      />
+      <div class="sf-muted" style="font-size: 13px; margin-top: -8px; padding-left: 28px">
+        Leia os <router-link to="/termos" target="_blank">termos de uso</router-link> e a
+        <router-link to="/privacidade" target="_blank">política de privacidade</router-link>.
+      </div>
       <q-btn
         unelevated
         color="primary"

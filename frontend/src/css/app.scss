@@ -20,6 +20,23 @@
   --sf-dica-borda: rgba(224, 138, 85, 0.3);
 }
 
+// Foco visível ao navegar pelo teclado (RNF07, WCAG 2.4.7). O realce padrão do Quasar é um véu
+// translúcido que quase não aparece sobre o terracota; o contorno vale para os temas claro e escuro.
+// O !important vence o `.no-outline` que o Quasar põe nos botões (`outline: 0 !important`).
+.q-btn,
+.q-chip,
+.q-item,
+.q-tab,
+.q-checkbox,
+.q-toggle,
+.q-radio,
+a {
+  &:focus-visible {
+    outline: 2px solid $primary !important;
+    outline-offset: 2px;
+  }
+}
+
 body {
   background: var(--sf-bg);
   color: var(--sf-text);
