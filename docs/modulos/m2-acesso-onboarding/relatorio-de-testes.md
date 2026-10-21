@@ -51,7 +51,8 @@ Também ganharam teste de componente a aba **Configurações › Perfil** (salva
 | 20/10 | e2e local (`quasar dev` na porta 9001 + API com SQLite descartável), CT37 antes das correções | ❌ 11 falhas: as violações A1–A4 |
 | 20/10 | e2e local, CT34–CT37 depois das correções, 3 rodadas seguidas | ✅ 20 em cada rodada (2 de teclado só no desktop) |
 | 20/10 | pytest, Vitest, ESLint e Prettier locais, depois das correções | ✅ 54 + 54, sem avisos de lint ou formato |
-| — | Pipeline do PR e e2e no preview deste ramo | ⏳ preenchido no PR |
+| 20/10 22:28 | Pipeline do PR #131: jobs `api` (Postgres 16) e `front` | ✅ |
+| 20/10 22:30 | e2e no preview deste ramo (`feature/m2-testes`) na Vercel, com o CT37 | ✅ 29 passaram, 2 pulados (teclado no celular) e 1 instável: o teste de status do M1 falhou na 1ª tentativa e passou na repetição |
 
 ## 4. Problemas encontrados e corrigidos
 
@@ -67,6 +68,7 @@ Também ganharam teste de componente a aba **Configurações › Perfil** (salva
 
 - **Falso positivo do axe no botão "Continuar".** No rodapé fixo (`position: sticky`) do cadastro guiado, o axe mede o texto branco contra o fundo da página, não contra o botão. O contraste real é de 5,0:1, acima do mínimo de 4,5:1. O teste tira esse botão da análise do axe e mede o contraste dele diretamente.
 - **Animações:** o teste espera as transições terminarem antes de rodar o axe. Com a notificação de conquista entrando, o axe media cores ainda semitransparentes. A cor da notificação (Savana com texto branco) tem contraste de 7,5:1.
+- **Teste de status instável na Vercel:** no preview deste PR, o teste da página de status (M1) não achou o resumo na 1ª tentativa e passou na repetição automática. É provável que o banco do Neon estivesse acordando. Se voltar a acontecer, abro um bug para dar mais tempo a essa espera.
 - **Status na máquina local:** o teste "a página de status lista os ambientes" do M1 falha se a API local roda sem `STATUS_AMBIENTES`. Na Vercel a variável existe.
 
 ## 5. Roteiro de validação manual
