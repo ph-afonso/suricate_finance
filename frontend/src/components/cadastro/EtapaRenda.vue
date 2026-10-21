@@ -35,10 +35,11 @@ function adicionar() {
     </p>
   </div>
   <div class="row q-col-gutter-sm">
-    <div class="col-4">
+    <!-- no celular, um campo por linha: em 1/3 da tela o rótulo "Dia do salário" ficava cortado -->
+    <div class="col-12 col-sm-4">
       <q-input v-model.number="r.dia" outlined type="number" min="1" max="31" label="Dia do salário" />
     </div>
-    <div class="col-8">
+    <div class="col-12 col-sm-8">
       <q-input
         v-model.number="r.valor_medio"
         outlined
