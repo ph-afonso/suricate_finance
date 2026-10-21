@@ -62,6 +62,7 @@ Também ganharam teste de componente a aba **Configurações › Perfil** (salva
 | A2 | Leitor de tela anunciava o aceite dos termos de um jeito confuso | Os links dos termos ficavam dentro do rótulo do checkbox: um controle dentro de outro | `CriarContaPage.vue`: o checkbox tem o texto do aceite e os links ficam na linha de baixo, na cor do guia visual |
 | A3 | A lista de etapas do cadastro guiado (desktop) não era anunciada como lista | Os itens tinham `role="listitem"`, mas o `q-list` não tinha `role="list"` | `CadastroGuiadoPage.vue`: `role="list"` e `aria-label="Etapas do cadastro guiado"` |
 | A4 | Pelo teclado, não dava para ver qual botão, link ou chip estava em foco (WCAG 2.4.7) | O Quasar põe `outline: 0 !important` nos botões, e o véu de foco dele quase não aparece sobre o terracota | `app.scss`: contorno terracota de 2 px em `:focus-visible` (só no foco por teclado, não no clique) |
+| A5 | No celular, o rótulo "Dia do salário" ficava cortado ("Dia do s…") na etapa Sua renda (achado na etapa 4, #19) | O campo ocupava 1/3 da linha também em telas de 360 px | `EtapaRenda.vue`: no celular, dia e valor médio ficam um por linha (`col-12 col-sm-4`) |
 | P1 | 3 testes do front estouraram o tempo na máquina local | A primeira montagem compila o Quasar inteiro e passa dos 5 s padrão | `vitest.config.js`: `testTimeout` de 20 s |
 
 ### Pontos conhecidos (não são defeitos)
